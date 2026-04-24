@@ -9,7 +9,7 @@ extends Node
 
 signal state_changed(new_state: State)
 signal battle_end(result: BattleReport)
-signal round_can_select(scores: Array[int])
+signal round_can_select(scores: Array)
 
 enum State {
 	IDLE,

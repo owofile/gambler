@@ -7,7 +7,7 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 	var cost_registry = data_manager.cost_registry
 
 	var report := BattleReport.new()
-	var current_score: Array[int] = [0, 0]
+	var current_score: Array = [0, 0]
 	var consecutive_draws: int = 0
 	var round_number: int = 0
 
@@ -176,7 +176,7 @@ static func _simulate_round(
 	round_num: int,
 	player_deck: DeckSnapshot,
 	enemy: EnemyData,
-	current_score: Array[int],
+	current_score: Array,
 	card_registry,
 	effect_registry,
 	cost_registry,

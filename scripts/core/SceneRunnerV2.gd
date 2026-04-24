@@ -139,7 +139,7 @@ func _on_flow_state_changed(state: int) -> void:
 			_logger.info("Battle ended")
 			_battle_in_progress = false
 
-func _on_round_can_select(scores: Array[int]) -> void:
+func _on_round_can_select(scores: Array) -> void:
 	_logger.info("Round ended, player can select again. Score: %d - %d" % [scores[0], scores[1]])
 	_battle_in_progress = false
 	_logger.info("Battle in progress reset to false")
@@ -155,8 +155,10 @@ func _on_battle_end(report: BattleReport) -> void:
 
 func _apply_results(report: BattleReport) -> void:
 	_logger.info("Applying battle results")
-	_logger.info("Report cards_to_remove: %s" % report.get_cards_to_remove())
-	_logger.info("Report cards_to_add: %s" % report.get_cards_to_add())
+	var cards_to_remove: Array = report.get_cards_to_remove()
+	var cards_to_add: Array = report.get_cards_to_add()
+	_logger.info("Report cards_to_remove count: %d" % cards_to_remove.size())
+	_logger.info("Report cards_to_add count: %d" % cards_to_add.size())
 
 	for instance_id in report.get_cards_to_remove():
 		var removed = _card_manager.remove_card(instance_id)
