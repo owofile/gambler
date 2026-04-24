@@ -1,0 +1,113 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3i2uv6yyr7tt"]
+
+[ext_resource type="Script" path="res://scenes/battle_ui_v_1.gd" id="1_j6r63"]
+[ext_resource type="Script" path="res://scenes/user_card.gd" id="2_eevc4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_myc4j"]
+size = Vector2(51, 233)
+
+[node name="BattleUiV1" type="Node2D"]
+position = Vector2(1, 0)
+script = ExtResource("1_j6r63")
+
+[node name="user_card" type="Node2D" parent="."]
+position = Vector2(19, 415)
+script = ExtResource("2_eevc4")
+
+[node name="user_card_01" type="Area2D" parent="user_card"]
+position = Vector2(270, 231)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_01"]
+position = Vector2(-5.5, -116.5)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_01"]
+position = Vector2(-10, -118)
+
+[node name="user_card_02" type="Area2D" parent="user_card"]
+position = Vector2(380, 233)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_02"]
+position = Vector2(-5, -116.25)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_02"]
+position = Vector2(-10, -118)
+
+[node name="ColorRect" type="ColorRect" parent="user_card/user_card_02/Sprite2D"]
+offset_left = -21.0
+offset_top = -115.0
+offset_right = 31.0
+offset_bottom = 118.0
+metadata/_edit_use_anchors_ = true
+
+[node name="user_card_03" type="Area2D" parent="user_card"]
+position = Vector2(492, 233)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_03"]
+position = Vector2(-5, -116.25)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_03"]
+position = Vector2(-10, -118)
+
+[node name="ColorRect" type="ColorRect" parent="user_card/user_card_03/Sprite2D"]
+offset_left = -21.0
+offset_top = -115.0
+offset_right = 31.0
+offset_bottom = 118.0
+metadata/_edit_use_anchors_ = true
+
+[node name="user_card_04" type="Area2D" parent="user_card"]
+position = Vector2(604, 233)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_04"]
+position = Vector2(-5, -116.25)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_04"]
+position = Vector2(-10, -118)
+
+[node name="ColorRect" type="ColorRect" parent="user_card/user_card_04/Sprite2D"]
+offset_left = -21.0
+offset_top = -115.0
+offset_right = 31.0
+offset_bottom = 118.0
+metadata/_edit_use_anchors_ = true
+
+[node name="user_card_05" type="Area2D" parent="user_card"]
+position = Vector2(716, 233)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_05"]
+position = Vector2(-5, -116.25)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_05"]
+position = Vector2(-10, -118)
+
+[node name="ColorRect" type="ColorRect" parent="user_card/user_card_05/Sprite2D"]
+offset_left = -21.0
+offset_top = -115.0
+offset_right = 31.0
+offset_bottom = 118.0
+metadata/_edit_use_anchors_ = true
+
+[node name="user_card_06" type="Area2D" parent="user_card"]
+position = Vector2(812, 233)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_06"]
+position = Vector2(-5, -116.25)
+shape = SubResource("RectangleShape2D_myc4j")
+
+[node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_06"]
+position = Vector2(-10, -118)
+
+[node name="ColorRect" type="ColorRect" parent="user_card/user_card_06/Sprite2D"]
+offset_left = -21.0
+offset_top = -115.0
+offset_right = 31.0
+offset_bottom = 118.0
+metadata/_edit_use_anchors_ = true
+
+[connection signal="mouse_entered" from="user_card/user_card_01" to="user_card" method="_on_user_card_01_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_01" to="user_card" method="_on_user_card_01_mouse_exited"]
