@@ -15,6 +15,7 @@
 | 2026-04-24 | v1.7.1 | 修复 SceneRunner 代价执行逻辑，验证 self_destroy 正常工作 |
 | 2026-04-24 | v2.0 | 新战斗流程系统：BattleFlowManager 状态机、CardSelector、AnimationController |
 | 2026-04-24 | v2.1 | 状态机与 BattleManager 整合，代价系统完整工作，Logger 日志系统 |
+| 2026-04-25 | v2.2 | 新增 BattleUI_v1 场景（Node2D 架构），卡片动画与交互系统 |
 
 ---
 
@@ -338,6 +339,50 @@ battle_ui.setup_battle(enemy: EnemyData)  # 初始化战斗
 battle_ui.refresh_hand()                    # 刷新手牌
 battle_ui.on_round_complete(round_detail)   # 回合结束后调用
 battle_ui.on_battle_complete(report)        # 战斗结束后调用
+```
+
+---
+
+## 7.2 BattleUI_v1 系统 (v2.2)
+
+**文件**: `scenes/Battle_UI_v1.tscn` + `scenes/battle_ui_v_1.gd` + `scenes/user_card.gd`
+
+**架构**：
+- `BattleUiV1` (Node2D) - 主控制器
+- `user_card` (Node2D) - 卡牌容器组件
+- `user_card_01~06` (Area2D) - 6张卡牌区域
+
+**功能**：
+- 手牌展示区：6张卡牌，支持鼠标交互
+- 悬停动画：鼠标移入时卡片向上移动30px + 持续晃动
+- 选中效果：选中后卡牌变为暖黄色 (`Color(1.3, 1.0, 0.8, 1.0)`)
+- 出牌选择：点击选择1-3张牌，确认后触发战斗
+- 战斗流程：完整接入 BattleFlowManager 状态机
+
+**信号**（user_card.gd → battle_ui_v_1.gd）：
+```gdscript
+# user_card.gd 发射的信号
+signal card_hovered(index: int)
+signal card_unhovered(index: int)
+signal card_clicked(index: int)
+
+# battle_ui_v_1.gd 发射的信号
+signal cards_confirmed(selected_ids: Array[String])
+```
+
+**编辑器连接**（需手动连接 user_card 节点的信号到 BattleUiV1）：
+| user_card 节点信号 | 连接到 BattleUiV1 方法 |
+|---|---|
+| card_hovered | _on_user_card_card_hovered |
+| card_unhovered | _on_user_card_card_unhovered |
+| card_clicked | _on_user_card_card_clicked |
+
+**使用方式**：
+```gdscript
+battle_ui_v1.setup_battle(enemy: EnemyData)  # 初始化战斗
+battle_ui_v1.refresh_hand()                    # 刷新手牌
+battle_ui_v1.enable_selection(true)            # 启用/禁用选牌
+battle_ui_v1.on_battle_complete(report)        # 战斗结束后调用
 ```
 
 ---

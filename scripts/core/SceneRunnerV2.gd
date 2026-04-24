@@ -54,14 +54,14 @@ func _setup_modules() -> void:
 	_logger.info("Modules setup complete")
 
 func _setup_ui() -> void:
-	var scene = load("res://scenes/BattleUI.tscn")
+	var scene = load("res://scenes/Battle_UI_v1.tscn")
 	if scene:
 		_battle_ui = scene.instantiate()
 		add_child(_battle_ui)
 		_battle_ui.cards_confirmed.connect(_on_cards_confirmed)
 		_logger.info("BattleUI loaded")
 	else:
-		_logger.error("Failed to load BattleUI.tscn")
+		_logger.error("Failed to load Battle_UI_v1.tscn")
 
 func _start_game() -> void:
 	for proto_id in INITIAL_CARD_IDS:

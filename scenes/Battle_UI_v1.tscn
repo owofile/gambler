@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://d3i2uv6yyr7tt"]
+[gd_scene load_steps=5 format=3 uid="uid://d3i2uv6yyr7tt"]
 
 [ext_resource type="Script" path="res://scenes/battle_ui_v_1.gd" id="1_j6r63"]
 [ext_resource type="Script" path="res://scenes/user_card.gd" id="2_eevc4"]
+[ext_resource type="Texture2D" uid="uid://ddmc1v2qk3cv8" path="res://assets/cards/backgrounds/logo_antver.png" id="3_t4jxw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_myc4j"]
 size = Vector2(51, 233)
@@ -15,14 +16,16 @@ position = Vector2(19, 415)
 script = ExtResource("2_eevc4")
 
 [node name="user_card_01" type="Area2D" parent="user_card"]
-position = Vector2(270, 231)
+position = Vector2(263, 226)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="user_card/user_card_01"]
 position = Vector2(-5.5, -116.5)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_01"]
-position = Vector2(-10, -118)
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
 [node name="user_card_02" type="Area2D" parent="user_card"]
 position = Vector2(380, 233)
@@ -32,14 +35,9 @@ position = Vector2(-5, -116.25)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_02"]
-position = Vector2(-10, -118)
-
-[node name="ColorRect" type="ColorRect" parent="user_card/user_card_02/Sprite2D"]
-offset_left = -21.0
-offset_top = -115.0
-offset_right = 31.0
-offset_bottom = 118.0
-metadata/_edit_use_anchors_ = true
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
 [node name="user_card_03" type="Area2D" parent="user_card"]
 position = Vector2(492, 233)
@@ -49,14 +47,9 @@ position = Vector2(-5, -116.25)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_03"]
-position = Vector2(-10, -118)
-
-[node name="ColorRect" type="ColorRect" parent="user_card/user_card_03/Sprite2D"]
-offset_left = -21.0
-offset_top = -115.0
-offset_right = 31.0
-offset_bottom = 118.0
-metadata/_edit_use_anchors_ = true
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
 [node name="user_card_04" type="Area2D" parent="user_card"]
 position = Vector2(604, 233)
@@ -66,14 +59,9 @@ position = Vector2(-5, -116.25)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_04"]
-position = Vector2(-10, -118)
-
-[node name="ColorRect" type="ColorRect" parent="user_card/user_card_04/Sprite2D"]
-offset_left = -21.0
-offset_top = -115.0
-offset_right = 31.0
-offset_bottom = 118.0
-metadata/_edit_use_anchors_ = true
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
 [node name="user_card_05" type="Area2D" parent="user_card"]
 position = Vector2(716, 233)
@@ -83,14 +71,9 @@ position = Vector2(-5, -116.25)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_05"]
-position = Vector2(-10, -118)
-
-[node name="ColorRect" type="ColorRect" parent="user_card/user_card_05/Sprite2D"]
-offset_left = -21.0
-offset_top = -115.0
-offset_right = 31.0
-offset_bottom = 118.0
-metadata/_edit_use_anchors_ = true
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
 [node name="user_card_06" type="Area2D" parent="user_card"]
 position = Vector2(812, 233)
@@ -100,14 +83,35 @@ position = Vector2(-5, -116.25)
 shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_06"]
-position = Vector2(-10, -118)
+position = Vector2(-5.79999, -116.8)
+scale = Vector2(0.0477778, 0.216296)
+texture = ExtResource("3_t4jxw")
 
-[node name="ColorRect" type="ColorRect" parent="user_card/user_card_06/Sprite2D"]
-offset_left = -21.0
-offset_top = -115.0
-offset_right = 31.0
-offset_bottom = 118.0
-metadata/_edit_use_anchors_ = true
+[node name="playcard" type="Button" parent="."]
+offset_left = 519.0
+offset_top = 315.0
+offset_right = 559.0
+offset_bottom = 346.0
+text = "出牌"
 
+[connection signal="card_clicked" from="user_card" to="." method="_on_user_card_card_clicked"]
+[connection signal="card_hovered" from="user_card" to="." method="_on_user_card_card_hovered"]
+[connection signal="card_unhovered" from="user_card" to="." method="_on_user_card_card_unhovered"]
+[connection signal="input_event" from="user_card/user_card_01" to="user_card" method="_on_user_card_01_input_event"]
 [connection signal="mouse_entered" from="user_card/user_card_01" to="user_card" method="_on_user_card_01_mouse_entered"]
 [connection signal="mouse_exited" from="user_card/user_card_01" to="user_card" method="_on_user_card_01_mouse_exited"]
+[connection signal="input_event" from="user_card/user_card_02" to="user_card" method="_on_user_card_02_input_event"]
+[connection signal="mouse_entered" from="user_card/user_card_02" to="user_card" method="_on_user_card_02_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_02" to="user_card" method="_on_user_card_02_mouse_exited"]
+[connection signal="input_event" from="user_card/user_card_03" to="user_card" method="_on_user_card_03_input_event"]
+[connection signal="mouse_entered" from="user_card/user_card_03" to="user_card" method="_on_user_card_03_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_03" to="user_card" method="_on_user_card_03_mouse_exited"]
+[connection signal="input_event" from="user_card/user_card_04" to="user_card" method="_on_user_card_04_input_event"]
+[connection signal="mouse_entered" from="user_card/user_card_04" to="user_card" method="_on_user_card_04_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_04" to="user_card" method="_on_user_card_04_mouse_exited"]
+[connection signal="input_event" from="user_card/user_card_05" to="user_card" method="_on_user_card_05_input_event"]
+[connection signal="mouse_entered" from="user_card/user_card_05" to="user_card" method="_on_user_card_05_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_05" to="user_card" method="_on_user_card_05_mouse_exited"]
+[connection signal="input_event" from="user_card/user_card_06" to="user_card" method="_on_user_card_06_input_event"]
+[connection signal="mouse_entered" from="user_card/user_card_06" to="user_card" method="_on_user_card_06_mouse_entered"]
+[connection signal="mouse_exited" from="user_card/user_card_06" to="user_card" method="_on_user_card_06_mouse_exited"]

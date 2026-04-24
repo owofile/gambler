@@ -85,7 +85,18 @@
 | 发送的信号 | `cards_confirmed(Array[String])` |
 | 接收的事件 | Flow_BattleStart, Flow_PlayerSelecting, Flow_BattleEnd 等 |
 
-### 4. CardMgr (Autoload)
+### 4.1 BattleUI_v1 (界面 - Node2D架构)
+
+| 项目 | 说明 |
+|------|------|
+| 职责 | Node2D架构的卡牌UI，卡片动画与交互 |
+| 主文件 | `scenes/battle_ui_v_1.gd` |
+| 组件文件 | `scenes/user_card.gd` (卡牌容器组件) |
+| 发送的信号 | `cards_confirmed(Array[String])` |
+| 接收的事件 | Flow_BattleStart, Flow_PlayerSelecting, Flow_RoundEnd, Flow_BattleEnd 等 |
+| 特性 | 鼠标悬停动画、选中高亮、出牌选择 |
+
+### 4.2 CardMgr (Autoload)
 
 | 项目 | 说明 |
 |------|------|
@@ -93,7 +104,7 @@
 | 公开方法 | AddCard(prototypeId) → CardInstance, RemoveCard(instanceId) → bool, GetAllCards() → Array, GetDeckSnapshot(ids) → DeckSnapshot, GetDeckSize() → int |
 | 访问路径 | `/root/CardMgr` |
 
-### 4. BattleManager (核心逻辑)
+### 5. BattleManager (核心逻辑)
 
 | 项目 | 说明 |
 |------|------|
@@ -293,6 +304,7 @@ EventBus.Unsubscribe(eventType: String, handler: Callable)
 |------|------|
 | SceneRunner | `scripts/core/SceneRunnerV2.gd` |
 | BattleUI | `scripts/ui/BattleUI.gd` |
+| BattleUI_v1 | `scenes/battle_ui_v_1.gd` + `scenes/user_card.gd` |
 | CardManager | `scripts/core/CardManager.gd` |
 | BattleManager | `scripts/core/BattleManager.gd` |
 | EventBus | `scripts/core/EventBus.gd` |
