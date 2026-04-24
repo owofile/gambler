@@ -1,0 +1,178 @@
+extends Node
+
+var _initial_cards: Array[String] = [
+	"card_rusty_sword",
+	"card_friendly_spirit",
+	"card_justice",
+	"card_blood_oath",
+	"card_vengeance",
+	"card_kings_authority"
+]
+
+var _battle_ui = null
+var _current_enemy: EnemyData = null
+var _data_manager = null
+var _card_manager = null
+var _card_selector = null
+var _battle_flow = null
+var _all_cards: Array[CardInstance] = []
+var _battle_in_progress: bool = false
+var _logger: Logger = null
+
+func _ready() -> void:
+	_logger = Logger.new()
+	_setup_ui()
+	_setup_modules()
+	start_game()
+
+func _get_data_manager():
+	return get_node("/root/DataManager")
+
+func _get_card_manager():
+	return get_node("/root/CardManager")
+
+func _get_event_bus():
+	return get_node("/root/EventBus")
+
+func _setup_modules() -> void:
+	_card_selector = CardSelector.new()
+	add_child(_card_selector)
+	_card_selector.selection_changed.connect(_on_selection_changed)
+
+	_battle_flow = BattleFlowManager.new()
+	add_child(_battle_flow)
+	_battle_flow.state_changed.connect(_on_flow_state_changed)
+	_battle_flow.battle_end.connect(_on_battle_end)
+	_battle_flow.round_can_select.connect(_on_round_can_select)
+
+	_logger.info("Modules setup complete")
+
+func _setup_ui() -> void:
+	var scene = load("res://scenes/BattleUI.tscn")
+	if scene:
+		_battle_ui = scene.instantiate()
+		add_child(_battle_ui)
+		_battle_ui.cards_confirmed.connect(_on_cards_confirmed)
+		_logger.info("BattleUI loaded")
+	else:
+		_logger.error("Failed to load BattleUI.tscn")
+
+func start_game() -> void:
+	_card_manager = _get_card_manager()
+	_data_manager = _get_data_manager()
+
+	for proto_id in _initial_cards:
+		var card = _card_manager.AddCard(proto_id)
+		if card:
+			_all_cards.append(card)
+
+	_logger.info("Initial deck size: %d" % _all_cards.size())
+
+	_current_enemy = _data_manager.enemy_registry.get_enemy("enemy_skeletal_warrior")
+	if _current_enemy:
+		_logger.info("Enemy loaded: %s" % _current_enemy.enemy_name)
+		_card_selector.set_available_cards(_all_cards)
+		if _battle_ui:
+			_battle_ui.setup_battle(_current_enemy)
+		_card_flow_start()
+	else:
+		_logger.error("Failed to load enemy!")
+
+func _card_flow_start() -> void:
+	var all_instance_ids: Array[String] = []
+	for card in _all_cards:
+		all_instance_ids.append(card.instance_id)
+	var snapshot = _card_manager.GetDeckSnapshot(all_instance_ids)
+	_logger.info("Starting battle flow")
+	_battle_flow.start_battle(snapshot, _current_enemy)
+
+func _on_selection_changed(selected_ids: Array[String]) -> void:
+	if _battle_ui:
+		_battle_ui.update_selection(selected_ids)
+
+func _on_cards_confirmed(selected_ids: Array[String]) -> void:
+	if _battle_in_progress:
+		_logger.warn("Battle in progress, ignoring confirmation")
+		return
+	if selected_ids.size() == 0:
+		_logger.warn("No cards selected")
+		return
+
+	_battle_in_progress = true
+	_logger.info("Cards confirmed: %d" % selected_ids.size())
+	_battle_flow.confirm_selection(selected_ids)
+
+func _on_flow_state_changed(state: int) -> void:
+	var state_name = BattleFlowManager.State.keys()[state] if state < BattleFlowManager.State.size() else str(state)
+	_logger.info("Flow state changed: %s" % state_name)
+
+	match state:
+		BattleFlowManager.State.PLAYER_SELECTING:
+			if _battle_ui:
+				_battle_ui.enable_selection(true)
+			_logger.info("Waiting for player selection")
+		BattleFlowManager.State.PLAYER_ANIMATING:
+			if _battle_ui:
+				_battle_ui.enable_selection(false)
+			_logger.info("Player cards animating, will complete after delay")
+			await _wait_and_complete("player_card_enter")
+			_logger.info("Player animation wait done")
+		BattleFlowManager.State.ENEMY_ANIMATING:
+			_logger.info("Enemy revealing cards, will complete after delay")
+			await _wait_and_complete("enemy_card_reveal")
+			_logger.info("Enemy animation wait done")
+		BattleFlowManager.State.COMPARE_ANIMATING:
+			_logger.info("Comparing cards, will complete after delay")
+			await _wait_and_complete("compare")
+			_logger.info("Compare wait done")
+		BattleFlowManager.State.ROUND_END_ANIMATING:
+			_logger.info("Round ending, will complete after delay")
+			await _wait_and_complete("round_end")
+			_logger.info("Round end animation wait done")
+		BattleFlowManager.State.BATTLE_END:
+			_logger.info("Battle ended")
+			_battle_in_progress = false
+
+func _on_round_can_select(scores: Array[int]) -> void:
+	_logger.info("Round ended, player can select again. Score: %d - %d" % [scores[0], scores[1]])
+	_battle_in_progress = false
+	_logger.info("_battle_in_progress reset to false")
+
+func _wait_and_complete(anim_type: String) -> void:
+	await get_tree().create_timer(0.5).timeout
+	_battle_flow.on_animation_complete(anim_type)
+
+func _on_battle_end(report: BattleReport) -> void:
+	var result_str = "Victory" if report.result == BattleEnums.EBattleResult.Victory else "Defeat"
+	_logger.info("Battle ended: %s" % result_str)
+	_apply_results(report)
+
+func _apply_results(report: BattleReport) -> void:
+	_logger.info("Applying battle results")
+	_logger.info("Report cards_to_remove: %s" % report.cards_to_remove)
+	_logger.info("Report cards_to_add: %s" % report.cards_to_add)
+
+	for instance_id in report.cards_to_remove:
+		var removed = _card_manager.RemoveCard(instance_id)
+		if removed:
+			_logger.info("Card removed: %s" % instance_id)
+			for card in _all_cards:
+				if card.instance_id == instance_id:
+					_all_cards.erase(card)
+					break
+
+	for proto_id in report.cards_to_add:
+		var new_card = _card_manager.AddCard(proto_id)
+		if new_card:
+			_all_cards.append(new_card)
+			_logger.info("Card added: %s" % proto_id)
+
+	_logger.info("Final deck size: %d" % _all_cards.size())
+
+	if _battle_ui:
+		_battle_ui.refresh_hand()
+		_battle_ui.on_battle_complete(report)
+
+	_card_selector.set_available_cards(_all_cards)
+
+	_logger.info("Log file: %s" % _logger.get_log_path())

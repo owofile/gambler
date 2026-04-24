@@ -11,6 +11,10 @@
 | 2026-04-24 | v1.4 | MVP 全链路跑通：获得牌→战斗→返回结果→卡牌仓库变化 |
 | 2026-04-24 | v1.5 | 新增 BattleUI 场景、SceneRunner 测试场景运行器 |
 | 2026-04-24 | v1.6 | BattleUI 可交互测试通过，游戏完整流程可玩 |
+| 2026-04-24 | v1.7 | 新增特效与代价系统（EffectRegistry, CostRegistry） |
+| 2026-04-24 | v1.7.1 | 修复 SceneRunner 代价执行逻辑，验证 self_destroy 正常工作 |
+| 2026-04-24 | v2.0 | 新战斗流程系统：BattleFlowManager 状态机、CardSelector、AnimationController |
+| 2026-04-24 | v2.1 | 状态机与 BattleManager 整合，代价系统完整工作，Logger 日志系统 |
 
 ---
 
@@ -38,12 +42,29 @@ gambler/
 │   │   ├── RoundDetail.gd       # 回合详情结构
 │   │   ├── BattleReport.gd      # 战斗报告结构
 │   │   ├── DeckSnapshot.gd      # 牌组快照结构
-│   │   └── CardSnapshot.gd      # 卡牌快照结构
+│   │   ├── CardSnapshot.gd      # 卡牌快照结构
+│   │   ├── EffectEnums.gd       # 特效优先级枚举
+│   │   ├── EffectContext.gd      # 特效上下文
+│   │   ├── CostContext.gd       # 代价上下文
+│   │   ├── EffectRegistry.gd    # 特效注册表
+│   │   └── CostRegistry.gd      # 代价注册表
+│   ├── effects/                 # 特效实现
+│   │   ├── IEffectHandler.gd     # 特效接口
+│   │   ├── FixedBonusEffect.gd  # 固定加成特效
+│   │   └── RuleReversalEffect.gd # 规则反转特效
+│   ├── costs/                   # 代价实现
+│   │   ├── ICostHandler.gd      # 代价接口
+│   │   ├── NextTurnUnusableCost.gd # 下回合不可用代价
+│   │   └── SelfDestroyCost.gd   # 自我毁灭代价
 │   ├── core/                    # 核心系统
 │   │   ├── CardManager.gd       # 卡牌管理模块
 │   │   ├── BattleManager.gd     # 战斗核心模块
 │   │   ├── EventBus.gd          # 事件总线
-│   │   ├── SceneRunner.gd       # 测试场景运行器（BattleUI 控制）
+│   │   ├── BattleFlowManager.gd # 战斗流程状态机 (v2.0)
+│   │   ├── CardSelector.gd      # 选牌管理器 (v2.0)
+│   │   ├── AnimationController.gd # 动画控制器 (v2.0)
+│   │   ├── SceneRunner.gd       # 测试场景运行器（v1.x）
+│   │   ├── SceneRunnerV2.gd    # 测试场景运行器（v2.0）
 │   │   └── GameRunner.gd        # 旧测试脚本（保留）
 │   ├── ui/                      # UI 系统
 │   │   └── BattleUI.gd          # 战斗界面 UI 控制器
@@ -59,7 +80,9 @@ gambler/
 │   ├── card_prototypes.json    # 卡牌原型配置
 │   └── enemy_registry.json      # 敌人配置
 ├── scenes/                      # 场景文件
-│   └── BattleUI.tscn           # 战斗 UI 场景
+│   ├── BattleUI.tscn           # 战斗 UI 场景
+│   ├── Main.tscn               # 主场景（v1.x）
+│   └── MainV2.tscn             # 主场景（v2.0）
 └── project.godot                # Godot 项目配置
 ```
 
@@ -342,18 +365,18 @@ battle_ui.on_battle_complete(report)        # 战斗结束后调用
 │                        BattleUI                              │
 │   emit_signal("cards_confirmed", selected_ids)              │
 └─────────────────────────┬───────────────────────────────────┘
-                          ↓
+						  ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                      SceneRunner                             │
 │   _on_cards_confirmed() ← Callable 接收信号                  │
 │   EventBus.Publish("BattleEnded", payload)                  │
 └─────────────────────────┬───────────────────────────────────┘
-                          ↓
+						  ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                       EventBus                               │
 │   Publish() → 遍历 _subscribers 逐个调用 handler             │
 └─────────────────────────┬───────────────────────────────────┘
-                          ↓
+						  ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                   订阅者回调                                  │
 │   _on_battle_ended_listener(payload)                         │
@@ -377,7 +400,7 @@ extends Control
 signal cards_confirmed(selected_ids: Array[String])
 
 func _on_confirm_pressed() -> void:
-    emit_signal("cards_confirmed", selected_ids)
+	emit_signal("cards_confirmed", selected_ids)
 ```
 
 ### 7.3.4 信号连接
@@ -392,9 +415,9 @@ _battle_ui.connect("cards_confirmed", Callable(_on_cards_confirmed))
 **发布 (EventBus)**：
 ```gdscript
 func Publish(event_type: String, payload: Variant) -> void:
-    if _subscribers.has(event_type):
-        for handler in _subscribers[event_type]:
-            handler.call(payload)
+	if _subscribers.has(event_type):
+		for handler in _subscribers[event_type]:
+			handler.call(payload)
 ```
 
 **订阅**：
@@ -417,6 +440,103 @@ EventBus.Subscribe("BattleEnded", _on_battle_ended)
 2. **EventBus 用于解耦**：跨模块通信，全局广播
 3. **使用 Callable 包装**：`_battle_ui.connect("signal", Callable(callback))`
 4. **Payload 作为参数**：统一的事件数据结构
+
+---
+
+## 7.4 特效与代价系统 (v1.7)
+
+### 7.4.1 特效优先级
+
+| 优先级 | 值 | 说明 |
+|--------|-----|------|
+| `BuffDebuff` | 0 | 增益减益级（最先执行） |
+| `ValueModifier` | 50 | 数值修整级 |
+| `RuleReversal` | 100 | 规则反转级（最后执行） |
+
+### 7.4.2 特效接口
+
+```gdscript
+class_name IEffectHandler
+extends RefCounted
+
+func apply(context: EffectContext) -> void
+func get_priority() -> int
+```
+
+### 7.4.3 已实现特效
+
+| 特效 | ID | 效果 | 优先级 |
+|------|-----|------|--------|
+| `FixedBonusEffect` | `fixed_bonus_2/3/5` | 增加固定点数 | ValueModifier |
+| `RuleReversalEffect` | `rule_reversal` | 交换双方总点数 | RuleReversal |
+
+### 7.4.4 代价接口
+
+```gdscript
+class_name ICostHandler
+extends RefCounted
+
+func trigger(context: CostContext) -> void
+```
+
+### 7.4.5 已实现代价
+
+| 代价 | ID | 效果 |
+|------|-----|------|
+| `NextTurnUnusableCost` | `next_turn_unusable` | 标记卡牌下回合不可用 |
+| `SelfDestroyCost` | `self_destroy` | 战斗后摧毁使用该代价的卡牌 |
+
+### 7.4.6 特效执行流程
+
+```
+1. 收集玩家出牌的所有 effectIds
+2. 按 Priority 排序（从低到高）
+3. 创建 EffectContext
+4. 依次调用各特效的 Apply()
+5. 特效执行完后判定胜负
+6. 收集 costIds，创建 CostContext
+7. 调用代价的 Trigger()
+```
+
+### 7.4.7 EffectContext 属性
+
+```gdscript
+var player_deck: DeckSnapshot
+var enemy_deck: DeckSnapshot
+var player_played_cards: Array[CardSnapshot]
+var enemy_played_cards: Array[CardSnapshot]
+var current_player_total: int
+var current_enemy_total: int
+var player_wins: int
+var enemy_wins: int
+var target_wins: int
+var is_draw: bool
+var pending_costs: Array[String]
+```
+
+### 7.4.8 BattleReport 新增字段
+
+```gdscript
+var disabled_instance_ids: Array[String]  # 下回合不可用的卡牌
+```
+
+### 7.4.9 代价执行流程（v1.7.1）
+
+```
+战斗结束
+	↓
+SceneRunner._apply_battle_results()
+	↓
+遍历 report.cards_to_remove → CardManager.RemoveCard()
+遍历 report.cards_to_add → CardManager.AddCard()
+	↓
+BattleUI.refresh_hand() 更新手牌显示
+```
+
+**验证结果（v1.7.1）**：
+- ✅ `self_destroy` 代价正确标记卡牌
+- ✅ `CardManager.RemoveCard()` 正确移除卡牌
+- ✅ 手牌数量从 6 变为 5
 
 ---
 

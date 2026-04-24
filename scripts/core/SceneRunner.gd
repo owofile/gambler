@@ -82,6 +82,8 @@ func _on_cards_confirmed(selected_ids: Array[String]) -> void:
 			_battle_ui.on_round_complete(round_detail)
 		_battle_ui.on_battle_complete(report)
 
+	_apply_battle_results(report, card_mgr)
+
 	var event_bus = _get_event_bus()
 	event_bus.Publish("BattleEnded", BattleEndedPayload.new(report))
 
@@ -89,6 +91,24 @@ func _on_battle_ended_listener(payload: BattleEndedPayload) -> void:
 	_log("[SceneRunner] BattleEnded event - Result: %s" % (
 		"Victory" if payload.report.result == BattleEnums.EBattleResult.Victory else "Defeat"
 	))
+
+func _apply_battle_results(report: BattleReport, card_mgr) -> void:
+	for instance_id in report.cards_to_remove:
+		var removed = card_mgr.RemoveCard(instance_id)
+		if removed:
+			_log("[SceneRunner] Card removed from deck: %s" % instance_id)
+		else:
+			_log("[SceneRunner] Failed to remove card: %s" % instance_id)
+
+	for proto_id in report.cards_to_add:
+		var new_card = card_mgr.AddCard(proto_id)
+		if new_card:
+			_log("[SceneRunner] Card added to deck: %s (%s)" % [proto_id, new_card.instance_id])
+
+	_log("[SceneRunner] Final deck size: %d" % card_mgr.GetDeckSize())
+
+	if _battle_ui:
+		_battle_ui.refresh_hand()
 
 func _log(msg: String) -> void:
 	print(msg)

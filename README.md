@@ -1,40 +1,22 @@
-# Gambler - Godot 卡牌对战游戏
+# Gambler
 
-基于 Godot 4.3 的卡牌对战游戏 MVP。
+Godot 4.3 卡牌对战游戏
+
+## 快速开始
+
+1. 用 Godot 4.3 打开项目
+2. 运行 `MainV2.tscn` 测试最新版本
+3. 查看 [docs/index.md](docs/index.md) 了解文档结构
 
 ## 项目状态
 
-v1.6 - 可交互测试通过
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - 架构文档
+- [docs/MODULES.md](docs/MODULES.md) - 模块说明
+- [docs/TECH_REFERENCE.md](docs/TECH_REFERENCE.md) - 技术参考
+- [docs/BATTLE_FLOW_DESIGN.md](docs/BATTLE_FLOW_DESIGN.md) - 战斗流程设计
 
-## 已实现功能
+## 版本
 
-- 卡牌原型注册系统（18 张卡牌，6 种类型）
-- 卡牌实例管理
-- 敌人登记系统
-- 战斗核心模块（纯点数比大小）
-- 事件总线（EventBus）
-- 战斗 UI 界面
-
-## 目录结构
-
-```
-gambler/
-├── scripts/
-│   ├── data/           # 数据结构
-│   ├── core/          # 核心系统
-│   ├── ui/            # UI 控制器
-│   ├── events/         # 事件负载
-│   └── autoload/       # 全局单例
-├── scenes/             # 场景文件
-├── resources/          # 配置数据
-└── project.godot
-```
-
-## 运行
-
-使用 Godot 4.3 打开项目，运行 `Main.tscn`
-
-## 文档
-
-- [架构文档](./ARCHITECTURE.md)
-- [问题复盘](./RETROSPECTIVE.md)
+- v2.1: 状态机+代价系统完整工作，日志系统
+- v2.0: 状态机+事件驱动
+- v1.x: 基础战斗系统

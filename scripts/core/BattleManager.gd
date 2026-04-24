@@ -2,7 +2,9 @@ class_name BattleManager
 extends RefCounted
 
 static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manager) -> BattleReport:
-	var registry = data_manager.card_registry
+	var card_registry = data_manager.card_registry
+	var effect_registry = data_manager.effect_registry
+	var cost_registry = data_manager.cost_registry
 
 	var report := BattleReport.new()
 	var current_score: Array[int] = [0, 0]
@@ -25,7 +27,10 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 			player_deck,
 			enemy,
 			current_score,
-			registry
+			card_registry,
+			effect_registry,
+			cost_registry,
+			report
 		)
 		report.rounds.append(round_detail)
 
@@ -58,8 +63,11 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 	else:
 		var removable: Array[String] = []
 		for card in player_deck.cards:
-			if card.bind_status != CardData.CardBindStatus.Locked:
+			if card.bind_status != CardData.CardBindStatus.Locked and not _is_disabled(card.instance_id, report):
 				removable.append(card.instance_id)
+		for remove_id in report.cards_to_remove:
+			if removable.has(remove_id):
+				removable.erase(remove_id)
 		if removable.size() > 0:
 			var random_idx := randi() % removable.size()
 			report.cards_to_remove.append(removable[random_idx])
@@ -73,33 +81,143 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 	return report
 
 
+static func ProcessSelectedCards(
+	player_snapshot: DeckSnapshot,
+	enemy: EnemyData,
+	data_manager
+) -> Dictionary:
+	print("[BattleManager] ProcessSelectedCards ENTERED with %d cards" % player_snapshot.cards.size())
+	for card in player_snapshot.cards:
+		print("[BattleManager]   Card in snapshot: %s, cost_id: '%s'" % [card.prototype_id, card.cost_id])
+
+	var card_registry = data_manager.card_registry
+	var effect_registry = data_manager.effect_registry
+	var cost_registry = data_manager.cost_registry
+
+	var report := BattleReport.new()
+	var context := EffectContext.new(
+		player_snapshot,
+		null,
+		player_snapshot.cards,
+		[],
+		0,
+		0,
+		0,
+		0,
+		3
+	)
+
+	for card in player_snapshot.cards:
+		context.current_player_total += card.final_value
+
+	var enemy_card_ids: Array[String] = _select_random_cards(enemy.deck_prototype_ids, 3)
+	var enemy_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
+	context.current_enemy_total = enemy_total
+
+	var all_effects: Array[String] = []
+	for card in player_snapshot.cards:
+		for eff_id in card.effect_ids:
+			all_effects.append(eff_id)
+
+	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_effects)
+	for effect in sorted_effects:
+		effect.apply(context)
+
+	for card in player_snapshot.cards:
+		print("[BattleManager] Checking card: %s, cost_id: '%s'" % [card.prototype_id, card.cost_id])
+		if card.cost_id != "":
+			print("[BattleManager] Card %s has cost: %s" % [card.prototype_id, card.cost_id])
+			var cost_handler: ICostHandler = cost_registry.get_cost(card.cost_id)
+			if cost_handler:
+				print("[BattleManager] Found cost handler for: %s" % card.cost_id)
+				var cost_ctx := CostContext.new(context, report, card, "player")
+				cost_handler.trigger(cost_ctx)
+			else:
+				print("[BattleManager] No cost handler found for: %s" % card.cost_id)
+
+	print("[BattleManager] ProcessSelectedCards: Player(%s) %d vs %d Enemy(%s)" % [
+		player_snapshot.cards.map(func(c): return c.prototype_id),
+		context.current_player_total,
+		context.current_enemy_total,
+		enemy_card_ids
+	])
+
+	return {
+		"player_total": context.current_player_total,
+		"enemy_total": context.current_enemy_total,
+		"enemy_card_ids": enemy_card_ids,
+		"report": report
+	}
+
+
+static func _is_disabled(instance_id: String, report: BattleReport) -> bool:
+	if report.disabled_instance_ids.has(instance_id):
+		return true
+	return false
+
+
 static func _simulate_round(
 	round_num: int,
 	player_deck: DeckSnapshot,
 	enemy: EnemyData,
 	current_score: Array[int],
-	registry
+	card_registry,
+	effect_registry,
+	cost_registry,
+	report: BattleReport
 ) -> RoundDetail:
 	var detail := RoundDetail.new()
 	detail.round_number = round_num
 
 	var player_cards: Array[CardSnapshot] = _select_top_cards(player_deck, 3)
-	var enemy_cards: Array[String] = _select_random_cards(enemy.deck_prototype_ids, 3)
+	var enemy_card_ids: Array[String] = _select_random_cards(enemy.deck_prototype_ids, 3)
 
 	for card in player_cards:
 		detail.player_card_ids.append(card.prototype_id)
-	for card_id in enemy_cards:
+	for card_id in enemy_card_ids:
 		detail.enemy_card_ids.append(card_id)
 
-	detail.player_total_value = _sum_card_values(player_cards)
-	detail.enemy_total_value = _sum_enemy_card_values(enemy_cards, registry)
+	var player_base_total: int = _sum_card_values(player_cards)
+	var enemy_base_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
 
-	if detail.player_total_value > detail.enemy_total_value:
+	var all_player_effects: Array[String] = []
+	for card in player_cards:
+		for eff_id in card.effect_ids:
+			all_player_effects.append(eff_id)
+
+	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_player_effects)
+
+	var context := EffectContext.new(
+		player_deck,
+		null,
+		player_cards,
+		[],
+		player_base_total,
+		enemy_base_total,
+		current_score[0],
+		current_score[1],
+		3
+	)
+
+	for effect in sorted_effects:
+		effect.apply(context)
+
+	detail.player_total_value = context.current_player_total
+	detail.enemy_total_value = context.current_enemy_total
+
+	if context.current_player_total > context.current_enemy_total:
 		detail.result = BattleEnums.ERoundResult.PlayerWin
-	elif detail.player_total_value < detail.enemy_total_value:
+	elif context.current_player_total < context.current_enemy_total:
 		detail.result = BattleEnums.ERoundResult.EnemyWin
 	else:
 		detail.result = BattleEnums.ERoundResult.Draw
+
+	for card in player_cards:
+		if card.cost_id != "":
+			var cost_handler: ICostHandler = cost_registry.get_cost(card.cost_id)
+			if cost_handler:
+				var cost_ctx := CostContext.new(context, report, card, "player")
+				cost_handler.trigger(cost_ctx)
 
 	print("[BattleManager] Round %d: Player(%s) %d vs %d Enemy(%s) - %s" % [
 		round_num,

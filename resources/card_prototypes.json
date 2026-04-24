@@ -9,7 +9,7 @@
 	"card_ancient_shield": {
 		"card_class": "Artifact",
 		"base_value": 5,
-		"effect_ids": [],
+		"effect_ids": ["fixed_bonus_2"],
 		"cost_id": "",
 		"is_lockable": true
 	},
@@ -87,7 +87,7 @@
 		"card_class": "Sin",
 		"base_value": 8,
 		"effect_ids": [],
-		"cost_id": "",
+		"cost_id": "self_destroy",
 		"is_lockable": true
 	},
 	"card_gluttony": {

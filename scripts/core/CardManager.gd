@@ -65,6 +65,7 @@ func GetDeckSnapshot(selected_instance_ids: Array[String]) -> DeckSnapshot:
 				card_snapshot.final_value = prototype.base_value + card.delta_value
 				card_snapshot.card_class = prototype.card_class
 				card_snapshot.effect_ids = prototype.effect_ids.duplicate()
+				card_snapshot.cost_id = prototype.cost_id
 				card_snapshot.bind_status = card.bind_status
 				snapshot.cards.append(card_snapshot)
 	print("[CardManager] GetDeckSnapshot: created snapshot %s with %d cards" % [snapshot.deck_id, snapshot.cards.size()])

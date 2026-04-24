@@ -6,7 +6,9 @@ var prototype_id: String
 var final_value: int
 var card_class: CardData.CardClass
 var effect_ids: Array[String]
+var cost_id: String
 var bind_status: CardData.CardBindStatus
 
 func _init() -> void:
 	effect_ids = []
+	cost_id = ""

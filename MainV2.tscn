@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bji4ge1b6i6b7"]
+
+[ext_resource type="Script" path="res://scripts/core/SceneRunnerV2.gd" id="1_v2"]
+
+[node name="Main" type="Node"]
+
+[node name="SceneRunnerV2" type="Node" parent="."]
+script = ExtResource("1_v2")
