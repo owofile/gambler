@@ -1,0 +1,128 @@
+{
+	"card_rusty_sword": {
+		"card_class": "Artifact",
+		"base_value": 7,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_ancient_shield": {
+		"card_class": "Artifact",
+		"base_value": 5,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_cursed_amulet": {
+		"card_class": "Artifact",
+		"base_value": 9,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": false
+	},
+	"card_friendly_spirit": {
+		"card_class": "Creature",
+		"base_value": 4,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_wild_beast": {
+		"card_class": "Creature",
+		"base_value": 6,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_minion": {
+		"card_class": "Creature",
+		"base_value": 3,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_justice": {
+		"card_class": "Concept",
+		"base_value": 5,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_freedom": {
+		"card_class": "Concept",
+		"base_value": 2,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_hope": {
+		"card_class": "Concept",
+		"base_value": 7,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_blood_oath": {
+		"card_class": "Bond",
+		"base_value": 3,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_familial_bond": {
+		"card_class": "Bond",
+		"base_value": 4,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_sworn_enemy": {
+		"card_class": "Bond",
+		"base_value": 2,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_vengeance": {
+		"card_class": "Sin",
+		"base_value": 8,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_gluttony": {
+		"card_class": "Sin",
+		"base_value": 6,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_greed": {
+		"card_class": "Sin",
+		"base_value": 10,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_kings_authority": {
+		"card_class": "Authority",
+		"base_value": 8,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_judgment": {
+		"card_class": "Authority",
+		"base_value": 5,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	},
+	"card_decree": {
+		"card_class": "Authority",
+		"base_value": 4,
+		"effect_ids": [],
+		"cost_id": "",
+		"is_lockable": true
+	}
+}

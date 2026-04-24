@@ -1,0 +1,31 @@
+{
+	"enemy_skeletal_warrior": {
+		"enemy_name": "Skeletal Warrior",
+		"tier": "Grunt",
+		"deck_prototype_ids": [
+			"card_rusty_sword",
+			"card_ancient_shield",
+			"card_cursed_amulet"
+		],
+		"loot_pool_prototype_ids": [
+			"card_rusty_sword",
+			"card_ancient_shield"
+		]
+	},
+	"enemy_shadow_assassin": {
+		"enemy_name": "Shadow Assassin",
+		"tier": "Elite",
+		"deck_prototype_ids": [
+			"card_friendly_spirit",
+			"card_justice",
+			"card_vengeance",
+			"card_kings_authority",
+			"card_blood_oath"
+		],
+		"loot_pool_prototype_ids": [
+			"card_friendly_spirit",
+			"card_justice",
+			"card_vengeance"
+		]
+	}
+}

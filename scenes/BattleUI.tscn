@@ -1,0 +1,119 @@
+[gd_scene load_steps=2 format=3 uid="uid://drdu4siedqufh"]
+
+[ext_resource type="Script" path="res://scripts/ui/BattleUI.gd" id="1_script"]
+
+[node name="BattleUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="TopPanel" type="PanelContainer" parent="."]
+layout_mode = 2
+anchor_right = 1.0
+offset_bottom = 100.0
+
+[node name="VBox" type="VBoxContainer" parent="TopPanel"]
+layout_mode = 2
+
+[node name="EnemyInfo" type="HBoxContainer" parent="TopPanel/VBox"]
+layout_mode = 2
+
+[node name="EnemyName" type="Label" parent="TopPanel/VBox/EnemyInfo"]
+layout_mode = 2
+text = "Enemy: ---"
+horizontal_alignment = 1
+
+[node name="EnemyTier" type="Label" parent="TopPanel/VBox/EnemyInfo"]
+layout_mode = 2
+text = "[Tier]"
+horizontal_alignment = 1
+
+[node name="ScoreBoard" type="HBoxContainer" parent="TopPanel/VBox"]
+layout_mode = 2
+
+[node name="PlayerScoreLabel" type="Label" parent="TopPanel/VBox/ScoreBoard"]
+layout_mode = 2
+text = "Player: 0"
+
+[node name="VSLabel" type="Label" parent="TopPanel/VBox/ScoreBoard"]
+layout_mode = 2
+text = " - "
+
+[node name="EnemyScoreLabel" type="Label" parent="TopPanel/VBox/ScoreBoard"]
+layout_mode = 2
+text = "0 :Enemy"
+
+[node name="WinProgress" type="ProgressBar" parent="TopPanel/VBox"]
+layout_mode = 2
+max_value = 3.0
+
+[node name="MainArea" type="HSplitContainer" parent="."]
+layout_mode = 2
+anchor_top = 0.15
+anchor_right = 1.0
+anchor_bottom = 0.75
+
+[node name="HandPanel" type="PanelContainer" parent="MainArea"]
+layout_mode = 2
+size_flags_stretch_ratio = 0.6
+
+[node name="HandTitle" type="Label" parent="MainArea/HandPanel"]
+layout_mode = 2
+text = "Your Hand"
+horizontal_alignment = 1
+
+[node name="HandList" type="VBoxContainer" parent="MainArea/HandPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BattlePanel" type="PanelContainer" parent="MainArea"]
+layout_mode = 2
+size_flags_stretch_ratio = 0.4
+
+[node name="BattleTitle" type="Label" parent="MainArea/BattlePanel"]
+layout_mode = 2
+text = "Battle Area"
+horizontal_alignment = 1
+
+[node name="SelectedCards" type="VBoxContainer" parent="MainArea/BattlePanel"]
+layout_mode = 2
+
+[node name="ConfirmButton" type="Button" parent="MainArea/BattlePanel"]
+layout_mode = 2
+text = "Confirm Cards"
+
+[node name="RoundResult" type="Label" parent="MainArea/BattlePanel"]
+layout_mode = 2
+text = "Round: --"
+
+[node name="BottomPanel" type="PanelContainer" parent="."]
+layout_mode = 2
+anchor_top = 0.75
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="LogTitle" type="Label" parent="BottomPanel"]
+layout_mode = 2
+text = "Battle Log"
+
+[node name="LogScroll" type="ScrollContainer" parent="BottomPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogText" type="RichTextLabel" parent="BottomPanel/LogScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
