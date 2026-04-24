@@ -5,6 +5,7 @@
 | 文档 | 说明 |
 |------|------|
 | [README.md](./README.md) | 项目说明、快速开始 |
+| [OOP_STANDARD.md](./OOP_STANDARD.md) | OOP 编程规范（英文） |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 整体架构、设计原则 |
 | [MODULES.md](./MODULES.md) | 模块职责、接口、依赖关系 |
 | [TECH_REFERENCE.md](./TECH_REFERENCE.md) | Godot 4.3 GDScript 技术参考 |
