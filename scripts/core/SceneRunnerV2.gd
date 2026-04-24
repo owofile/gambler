@@ -1,6 +1,16 @@
+## Main scene orchestrator for the battle system.
+##
+## Responsibility:
+## - Initialize all game modules
+## - Coordinate battle flow
+## - Handle UI events and state updates
+##
+## This is the entry point that wires together CardManager, BattleFlowManager,
+## CardSelector, and BattleUI.
+class_name SceneRunnerV2
 extends Node
 
-var _initial_cards: Array[String] = [
+const INITIAL_CARD_IDS: Array[String] = [
 	"card_rusty_sword",
 	"card_friendly_spirit",
 	"card_justice",
@@ -9,13 +19,13 @@ var _initial_cards: Array[String] = [
 	"card_kings_authority"
 ]
 
-var _battle_ui = null
+var _battle_ui: Node = null
 var _current_enemy: EnemyData = null
-var _data_manager = null
-var _card_manager = null
-var _card_selector = null
-var _battle_flow = null
-var _all_cards: Array[CardInstance] = []
+var _data_manager: Node = null
+var _card_manager: Node = null
+var _card_selector: Node = null
+var _battle_flow: Node = null
+var _all_cards: Array = []
 var _battle_in_progress: bool = false
 var _logger: Logger = null
 
@@ -23,24 +33,20 @@ func _ready() -> void:
 	_logger = Logger.new()
 	_setup_ui()
 	_setup_modules()
-	start_game()
-
-func _get_data_manager():
-	return get_node("/root/DataManager")
-
-func _get_card_manager():
-	return get_node("/root/CardManager")
-
-func _get_event_bus():
-	return get_node("/root/EventBus")
+	_start_game()
 
 func _setup_modules() -> void:
+	_card_manager = get_node("/root/CardMgr")
+	_data_manager = get_node("/root/DataManager")
+	var event_bus = get_node("/root/EventBus")
+
 	_card_selector = CardSelector.new()
 	add_child(_card_selector)
 	_card_selector.selection_changed.connect(_on_selection_changed)
 
 	_battle_flow = BattleFlowManager.new()
 	add_child(_battle_flow)
+	_battle_flow.initialize(_card_manager, _data_manager, event_bus)
 	_battle_flow.state_changed.connect(_on_flow_state_changed)
 	_battle_flow.battle_end.connect(_on_battle_end)
 	_battle_flow.round_can_select.connect(_on_round_can_select)
@@ -57,12 +63,9 @@ func _setup_ui() -> void:
 	else:
 		_logger.error("Failed to load BattleUI.tscn")
 
-func start_game() -> void:
-	_card_manager = _get_card_manager()
-	_data_manager = _get_data_manager()
-
-	for proto_id in _initial_cards:
-		var card = _card_manager.AddCard(proto_id)
+func _start_game() -> void:
+	for proto_id in INITIAL_CARD_IDS:
+		var card = _card_manager.add_card(proto_id)
 		if card:
 			_all_cards.append(card)
 
@@ -70,19 +73,22 @@ func start_game() -> void:
 
 	_current_enemy = _data_manager.enemy_registry.get_enemy("enemy_skeletal_warrior")
 	if _current_enemy:
-		_logger.info("Enemy loaded: %s" % _current_enemy.enemy_name)
+		_logger.info("Enemy loaded: %s" % _current_enemy.get_enemy_name())
 		_card_selector.set_available_cards(_all_cards)
 		if _battle_ui:
 			_battle_ui.setup_battle(_current_enemy)
-		_card_flow_start()
+		_start_battle_flow()
 	else:
 		_logger.error("Failed to load enemy!")
 
-func _card_flow_start() -> void:
+func _start_battle_flow() -> void:
 	var all_instance_ids: Array[String] = []
-	for card in _all_cards:
-		all_instance_ids.append(card.instance_id)
-	var snapshot = _card_manager.GetDeckSnapshot(all_instance_ids)
+	for c in _all_cards:
+		var card: CardInstance = c as CardInstance
+		if card:
+			all_instance_ids.append(card.get_card_id())
+
+	var snapshot = _card_manager.get_deck_snapshot(all_instance_ids)
 	_logger.info("Starting battle flow")
 	_battle_flow.start_battle(snapshot, _current_enemy)
 
@@ -136,33 +142,34 @@ func _on_flow_state_changed(state: int) -> void:
 func _on_round_can_select(scores: Array[int]) -> void:
 	_logger.info("Round ended, player can select again. Score: %d - %d" % [scores[0], scores[1]])
 	_battle_in_progress = false
-	_logger.info("_battle_in_progress reset to false")
+	_logger.info("Battle in progress reset to false")
 
 func _wait_and_complete(anim_type: String) -> void:
 	await get_tree().create_timer(0.5).timeout
 	_battle_flow.on_animation_complete(anim_type)
 
 func _on_battle_end(report: BattleReport) -> void:
-	var result_str = "Victory" if report.result == BattleEnums.EBattleResult.Victory else "Defeat"
+	var result_str = "Victory" if report.is_victory() else "Defeat"
 	_logger.info("Battle ended: %s" % result_str)
 	_apply_results(report)
 
 func _apply_results(report: BattleReport) -> void:
 	_logger.info("Applying battle results")
-	_logger.info("Report cards_to_remove: %s" % report.cards_to_remove)
-	_logger.info("Report cards_to_add: %s" % report.cards_to_add)
+	_logger.info("Report cards_to_remove: %s" % report.get_cards_to_remove())
+	_logger.info("Report cards_to_add: %s" % report.get_cards_to_add())
 
-	for instance_id in report.cards_to_remove:
-		var removed = _card_manager.RemoveCard(instance_id)
+	for instance_id in report.get_cards_to_remove():
+		var removed = _card_manager.remove_card(instance_id)
 		if removed:
 			_logger.info("Card removed: %s" % instance_id)
-			for card in _all_cards:
-				if card.instance_id == instance_id:
+			for c in _all_cards:
+				var card: CardInstance = c as CardInstance
+				if card and card.get_card_id() == instance_id:
 					_all_cards.erase(card)
 					break
 
-	for proto_id in report.cards_to_add:
-		var new_card = _card_manager.AddCard(proto_id)
+	for proto_id in report.get_cards_to_add():
+		var new_card = _card_manager.add_card(proto_id)
 		if new_card:
 			_all_cards.append(new_card)
 			_logger.info("Card added: %s" % proto_id)

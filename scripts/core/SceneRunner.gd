@@ -22,7 +22,7 @@ func _get_data_manager():
 	return get_node("/root/DataManager")
 
 func _get_card_manager():
-	return get_node("/root/CardManager")
+	return get_node("/root/CardMgr")
 
 func _get_event_bus():
 	return get_node("/root/EventBus")
@@ -54,7 +54,7 @@ func start_game() -> void:
 
 	_current_enemy = _data_manager.enemy_registry.get_enemy("enemy_skeletal_warrior")
 	if _current_enemy:
-		_log("[SceneRunner] Enemy loaded: %s" % _current_enemy.enemy_name)
+		_log("[SceneRunner] Enemy loaded: %s" % _current_enemy.get_enemy_name())
 		if _battle_ui:
 			_battle_ui.setup_battle(_current_enemy)
 			_battle_ui.refresh_hand()
@@ -103,7 +103,7 @@ func _apply_battle_results(report: BattleReport, card_mgr) -> void:
 	for proto_id in report.cards_to_add:
 		var new_card = card_mgr.AddCard(proto_id)
 		if new_card:
-			_log("[SceneRunner] Card added to deck: %s (%s)" % [proto_id, new_card.instance_id])
+			_log("[SceneRunner] Card added to deck: %s (%s)" % [proto_id, new_card.get_card_id()])
 
 	_log("[SceneRunner] Final deck size: %d" % card_mgr.GetDeckSize())
 

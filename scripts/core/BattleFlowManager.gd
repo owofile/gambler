@@ -1,5 +1,15 @@
+## Manages the battle flow state machine.
+##
+## Responsibility:
+## - Manage battle state transitions
+## - Coordinate between player selection, animations, and battle calculation
+## - Publish flow events for UI and animation systems
 class_name BattleFlowManager
 extends Node
+
+signal state_changed(new_state: State)
+signal battle_end(result: BattleReport)
+signal round_can_select(scores: Array[int])
 
 enum State {
 	IDLE,
@@ -11,64 +21,70 @@ enum State {
 	BATTLE_END
 }
 
-signal state_changed(new_state: State)
-signal battle_end(result: BattleReport)
-signal round_can_select(scores: Array[int])
-
 var _current_state: State = State.IDLE
 var _player_deck: DeckSnapshot = null
 var _enemy: EnemyData = null
-var _data_manager = null
+var _data_manager: Node = null
+var _card_manager: Node = null
+var _event_bus: Node = null
 var _current_round: int = 0
-var _current_score: Array[int] = [0, 0]
+var _current_score: Array = [0, 0]
 var _target_wins: int = 3
 var _current_player_snapshot: DeckSnapshot = null
-var _current_enemy_card_ids: Array[String] = []
+var _current_enemy_card_ids: Array = []
 var _current_report: BattleReport = null
 var _battle_report: BattleReport = null
 
-func _get_card_manager():
-	return get_node("/root/CardManager")
+## Initializes the battle flow manager with dependencies.
+func initialize(
+	card_manager: Node,
+	data_manager: Node,
+	event_bus: Node
+) -> void:
+	_card_manager = card_manager
+	_data_manager = data_manager
+	_event_bus = event_bus
 
-func _get_data_manager():
-	return get_node("/root/DataManager")
-
-func _get_event_bus():
-	return get_node("/root/EventBus")
-
+## Starts a new battle.
 func start_battle(player_deck: DeckSnapshot, enemy: EnemyData) -> void:
 	_player_deck = player_deck
 	_enemy = enemy
-	_data_manager = _get_data_manager()
 
-	match enemy.tier:
-		EnemyData.EnemyTier.Grunt: _target_wins = 3
-		EnemyData.EnemyTier.Elite: _target_wins = 4
-		EnemyData.EnemyTier.Boss: _target_wins = 5
-		_: _target_wins = 3
+	match enemy.get_tier():
+		EnemyData.EnemyTier.Grunt:
+			_target_wins = 3
+		EnemyData.EnemyTier.Elite:
+			_target_wins = 4
+		EnemyData.EnemyTier.Boss:
+			_target_wins = 5
+		_:
+			_target_wins = 3
 
 	_current_score = [0, 0]
 	_current_round = 0
+	_battle_report = null
+	_current_report = null
 
 	_set_state(State.PLAYER_SELECTING)
 	_publish("Flow_BattleStart", {"enemy": enemy})
 	_publish("Flow_PlayerSelecting", null)
 
-func confirm_selection(card_instance_ids: Array[String]) -> void:
+## Confirms the player's card selection.
+func confirm_selection(card_instance_ids: Array) -> void:
 	if _current_state != State.PLAYER_SELECTING:
-		print("[BattleFlowManager] Cannot confirm selection in state: %d" % _current_state)
+		push_warning("BattleFlowManager: Cannot confirm selection in state: %d" % _current_state)
 		return
 
 	if card_instance_ids.size() == 0:
-		print("[BattleFlowManager] No cards selected")
+		push_warning("BattleFlowManager: No cards selected")
 		return
 
-	var card_mgr = _get_card_manager()
-	_current_player_snapshot = card_mgr.GetDeckSnapshot(card_instance_ids)
-	_publish("Flow_PlayerCardAnimStart", {"cards": _current_player_snapshot.cards})
+	_current_player_snapshot = _card_manager.get_deck_snapshot(card_instance_ids)
+	_publish("Flow_PlayerCardAnimStart", {"cards": _current_player_snapshot.get_cards()})
 
 	_set_state(State.PLAYER_ANIMATING)
 
+## Called when an animation completes.
 func on_animation_complete(anim_type: String) -> void:
 	match _current_state:
 		State.PLAYER_ANIMATING:
@@ -91,7 +107,6 @@ func get_current_state() -> State:
 func _set_state(new_state: State) -> void:
 	_current_state = new_state
 	state_changed.emit(_current_state)
-	print("[BattleFlowManager] State: %d" % _current_state)
 
 func _trigger_enemy_reveal() -> void:
 	_set_state(State.ENEMY_ANIMATING)
@@ -106,24 +121,29 @@ func _trigger_enemy_reveal() -> void:
 func _trigger_compare() -> void:
 	_set_state(State.COMPARE_ANIMATING)
 
-	print("[BattleFlowManager] _trigger_compare called, calling ProcessSelectedCards")
-	var result = BattleManager.ProcessSelectedCards(_current_player_snapshot, _enemy, _data_manager)
-	print("[BattleFlowManager] ProcessSelectedCards returned: player_total=%d, enemy_total=%d" % [result.player_total, result.enemy_total])
-	_current_enemy_card_ids = result.enemy_card_ids
-	var player_total = result.player_total
-	var enemy_total = result.enemy_total
-	_current_report = result.report
+	var result = _process_selected_cards_static(
+		_current_player_snapshot,
+		_enemy,
+		_data_manager
+	)
+	_current_enemy_card_ids = result.get("enemy_card_ids")
+	var player_total = result.get("player_total")
+	var enemy_total = result.get("enemy_total")
+	_current_report = result.get("report")
 
 	if _battle_report == null:
 		_battle_report = BattleReport.new()
-	for card_id in _current_report.cards_to_remove:
-		if not _battle_report.cards_to_remove.has(card_id):
-			_battle_report.cards_to_remove.append(card_id)
 
-	var player_card_ids: Array[String] = []
+	for card_id in _current_report.get_cards_to_remove():
+		if not _battle_report.get_cards_to_remove().has(card_id):
+			_battle_report.add_card_to_remove(card_id)
+
+	var player_card_ids: Array = []
 	if _current_player_snapshot:
-		for card in _current_player_snapshot.cards:
-			player_card_ids.append(card.prototype_id)
+		for c in _current_player_snapshot.get_cards():
+			var card: CardSnapshot = c as CardSnapshot
+			if card:
+				player_card_ids.append(card.get_prototype_id())
 
 	_publish("Flow_CompareStart", {
 		"player_cards": player_card_ids,
@@ -138,18 +158,17 @@ func _trigger_round_end() -> void:
 
 	var player_total = 0
 	var enemy_total = 0
-	if _current_report:
-		for card in _current_player_snapshot.cards:
-			player_total += card.final_value
+	if _current_report and _current_player_snapshot:
+		for c in _current_player_snapshot.get_cards():
+			var card: CardSnapshot = c as CardSnapshot
+			if card:
+				player_total += card.get_final_value()
 		for cid in _current_enemy_card_ids:
 			var proto = _data_manager.card_registry.get_prototype(cid)
 			if proto:
 				enemy_total += proto.base_value
-	else:
-		player_total = _sum_player_values()
-		enemy_total = _sum_enemy_values()
 
-	var round_result: String = "draw"
+	var round_result = "draw"
 	if player_total > enemy_total:
 		_current_score[0] += 1
 		round_result = "player"
@@ -171,19 +190,12 @@ func _check_battle_end() -> void:
 	elif _current_score[1] >= _target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 	else:
-		print("[BattleFlowManager] Round %d complete, accumulating costs..." % _current_round)
-		if _current_report == null:
-			print("[BattleFlowManager] WARNING: _current_report is null!")
-		else:
-			print("[BattleFlowManager] _current_report.cards_to_remove: %s" % _current_report.cards_to_remove)
 		if _battle_report == null:
 			_battle_report = BattleReport.new()
 		if _current_report:
-			for card_id in _current_report.cards_to_remove:
-				if not _battle_report.cards_to_remove.has(card_id):
-					_battle_report.cards_to_remove.append(card_id)
-					print("[BattleFlowManager] Added %s to _battle_report.cards_to_remove" % card_id)
-		print("[BattleFlowManager] _battle_report.cards_to_remove now: %s" % _battle_report.cards_to_remove)
+			for card_id in _current_report.get_cards_to_remove():
+				if not _battle_report.get_cards_to_remove().has(card_id):
+					_battle_report.add_card_to_remove(card_id)
 		_set_state(State.PLAYER_SELECTING)
 		round_can_select.emit(_current_score)
 
@@ -192,40 +204,24 @@ func _trigger_battle_end(result: BattleEnums.EBattleResult) -> void:
 
 	if _battle_report == null:
 		_battle_report = BattleReport.new()
-	_battle_report.result = result
-	_battle_report.player_wins = _current_score[0]
-	_battle_report.enemy_wins = _current_score[1]
+	_battle_report.set_result(result)
+	_battle_report.set_player_wins(_current_score[0])
+	_battle_report.set_enemy_wins(_current_score[1])
 
-	# Accumulate costs one final time before battle ends
 	if _current_report:
-		for card_id in _current_report.cards_to_remove:
-			if not _battle_report.cards_to_remove.has(card_id):
-				_battle_report.cards_to_remove.append(card_id)
-				print("[BattleFlowManager] Final cost added: %s" % card_id)
-
-	print("[BattleFlowManager] Battle ENDED: %s, scores: %d-%d, cards_to_remove: %s" % [
-		result, _current_score[0], _current_score[1], _battle_report.cards_to_remove])
+		for card_id in _current_report.get_cards_to_remove():
+			if not _battle_report.get_cards_to_remove().has(card_id):
+				_battle_report.add_card_to_remove(card_id)
 
 	_publish("Flow_BattleEnd", {"result": result, "report": _battle_report})
 	battle_end.emit(_battle_report)
 
-func _create_battle_report(result: BattleEnums.EBattleResult) -> BattleReport:
-	var report = BattleReport.new()
-	report.result = result
-	report.player_wins = _current_score[0]
-	report.enemy_wins = _current_score[1]
-	report.rounds = []
-	report.cards_to_add = []
-	report.cards_to_remove = []
-	report.disabled_instance_ids = []
-	return report
-
-func _select_enemy_cards() -> Array[String]:
+func _select_enemy_cards() -> Array:
 	if _enemy == null:
 		return []
 
-	var result: Array[String] = []
-	var available = _enemy.deck_prototype_ids.duplicate()
+	var result: Array = []
+	var available = _enemy.get_deck_prototype_ids().duplicate()
 
 	for i in range(mini(3, available.size())):
 		if available.size() == 0:
@@ -236,23 +232,84 @@ func _select_enemy_cards() -> Array[String]:
 
 	return result
 
-func _sum_player_values() -> int:
-	var total = 0
-	if _current_player_snapshot:
-		for card in _current_player_snapshot.cards:
-			total += card.final_value
-	return total
+func _publish(event_type: String, payload) -> void:
+	if _event_bus:
+		_event_bus.publish(event_type, payload)
 
-func _sum_enemy_values() -> int:
-	var total = 0
-	var registry = _data_manager.card_registry
-	for card_id in _current_enemy_card_ids:
+
+static func _process_selected_cards_static(
+	player_snapshot: DeckSnapshot,
+	enemy: EnemyData,
+	data_manager
+) -> Dictionary:
+	var card_registry = data_manager.card_registry
+	var effect_registry = data_manager.effect_registry
+	var cost_registry = data_manager.cost_registry
+
+	var report := BattleReport.new()
+	var player_cards = player_snapshot.get_cards()
+	var context := EffectContext.new(
+		player_snapshot,
+		null,
+		player_cards,
+		[],
+		0,
+		0,
+		0,
+		0,
+		3
+	)
+
+	for card in player_cards:
+		context.add_player_total(card.get_final_value())
+
+	var enemy_card_ids: Array = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
+	var enemy_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
+	context.set_current_enemy_total(enemy_total)
+
+	var all_effects: Array = []
+	for card in player_cards:
+		for eff_id in card.get_effect_ids():
+			all_effects.append(eff_id)
+
+	var sorted_effects: Array = effect_registry.get_effects_sorted_by_priority(all_effects)
+	for effect in sorted_effects:
+		effect.apply(context)
+
+	for card in player_cards:
+		if card.has_cost():
+			var cost_handler: ICostHandler = cost_registry.get_cost(card.get_cost_id())
+			if cost_handler:
+				var cost_ctx := CostContext.new(context, report, card, "player")
+				cost_handler.trigger(cost_ctx)
+
+	return {
+		"player_total": context.get_current_player_total(),
+		"enemy_total": context.get_current_enemy_total(),
+		"enemy_card_ids": enemy_card_ids,
+		"report": report
+	}
+
+static func _select_random_cards(card_ids: Array, count: int) -> Array:
+	if card_ids.size() == 0:
+		return []
+
+	var result: Array = []
+	var available = card_ids.duplicate()
+
+	for i in range(mini(count, card_ids.size())):
+		if available.size() == 0:
+			break
+		var idx = randi() % available.size()
+		result.append(available[idx])
+		available.remove_at(idx)
+
+	return result
+
+static func _sum_enemy_card_values(card_ids: Array, registry) -> int:
+	var total: int = 0
+	for card_id in card_ids:
 		var proto = registry.get_prototype(card_id)
 		if proto:
 			total += proto.base_value
 	return total
-
-func _publish(event_type: String, payload) -> void:
-	var event_bus = _get_event_bus()
-	if event_bus:
-		event_bus.Publish(event_type, payload)

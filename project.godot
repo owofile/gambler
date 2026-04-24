@@ -16,9 +16,9 @@ config/features=PackedStringArray("4.3", "GL Compatibility")
 
 [autoload]
 
-DataManager="res://scripts/autoload/DataManager.gd"
-CardManager="res://scripts/core/CardManager.gd"
-EventBus="res://scripts/core/EventBus.gd"
+DataManager="*res://scripts/autoload/DataManager.gd"
+CardMgr="*res://scripts/core/CardManager.gd"
+EventBus="*res://scripts/core/EventBus.gd"
 
 [rendering]
 

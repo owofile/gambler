@@ -676,10 +676,17 @@ var health: int = 100
 var damage := calculate_damage()
 var enemies := get_enemies()
 
-## Array typing (always use typed arrays)
-var cards: Array[CardInstance] = []
-var values: Array[int] = [1, 2, 3]
-var effects: Array[IEffectHandler] = []
+## Array typing - NOTE: Godot 4 GDScript has issues with typed arrays
+## DO NOT use Array[SomeClass] - it causes parser errors when accessing methods
+## USE untyped Array with explicit casting instead
+var cards: Array = []  # CORRECT - untyped array
+var cards: Array[CardInstance] = []  # WRONG - causes parse errors
+
+## When iterating typed arrays, use explicit casting:
+for c in cards:
+    var card: CardInstance = c as CardInstance
+    if card:
+        card.get_card_id()  # Works correctly
 
 ## Dictionary typing
 var player_data: Dictionary = {}
@@ -687,6 +694,45 @@ var config: Dictionary = {
     "difficulty": 1,
     "sound_enabled": true
 }
+```
+
+### 8.5.1 Godot 4 GDScript Typed Array Limitations
+
+**Problem**: Godot 4's GDScript parser cannot resolve methods on array elements when using typed arrays like `Array[CardInstance]`. This is a known limitation.
+
+**Solution**: Use untyped `Array` with explicit casting:
+
+```gdscript
+# WRONG - will cause "Could not resolve external class member" errors
+func get_card(instance_id: String) -> CardInstance:
+    for card in _player_deck:  # _player_deck: Array[CardInstance]
+        if card.get_card_id() == instance_id:  # PARSE ERROR
+            return card
+    return null
+
+# CORRECT - works in Godot 4
+func get_card(instance_id: String) -> CardInstance:
+    for c in _player_deck:
+        var card: CardInstance = c as CardInstance
+        if card and card.get_card_id() == instance_id:
+            return card
+    return null
+```
+
+### 8.6 Built-in Method Name Conflicts
+
+**Warning**: Do NOT name methods `get_instance_id()` - it conflicts with Godot's built-in `Object.get_instance_id()` which returns `int`.
+
+```gdscript
+# WRONG - conflicts with Object.get_instance_id() -> int
+class_name CardSnapshot
+extends RefCounted
+func get_instance_id() -> String:  # ERROR: signature doesn't match parent
+    return _instance_id
+
+# CORRECT - use alternative names
+func get_card_id() -> String:
+    return _instance_id
 ```
 
 ### 8.6 Async/Await Patterns

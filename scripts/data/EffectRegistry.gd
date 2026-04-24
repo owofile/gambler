@@ -17,15 +17,21 @@ func get_effect(effect_id: String) -> IEffectHandler:
 		return _effects[effect_id]
 	return null
 
-func get_all_effect_ids() -> Array[String]:
+func get_all_effect_ids() -> Array:
 	return Array(_effects.keys(), TYPE_STRING, "", null)
 
-func get_effects_sorted_by_priority(effect_ids: Array[String]) -> Array[IEffectHandler]:
-	var handlers: Array[IEffectHandler] = []
+func get_effects_sorted_by_priority(effect_ids: Array) -> Array:
+	var handlers: Array = []
 	for eff_id in effect_ids:
 		var handler = get_effect(eff_id)
 		if handler:
 			handlers.append(handler)
 
-	handlers.sort_custom(func(a, b): return a.get_priority() < b.get_priority())
+	handlers.sort_custom(func(a, b):
+		var handler_a: IEffectHandler = a as IEffectHandler
+		var handler_b: IEffectHandler = b as IEffectHandler
+		if not handler_a or not handler_b:
+			return false
+		return handler_a.get_priority() < handler_b.get_priority()
+	)
 	return handlers

@@ -12,13 +12,13 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 	var round_number: int = 0
 
 	var target_wins: int
-	match enemy.tier:
+	match enemy.get_tier():
 		EnemyData.EnemyTier.Grunt: target_wins = 3
 		EnemyData.EnemyTier.Elite: target_wins = 4
 		EnemyData.EnemyTier.Boss: target_wins = 5
 		_: target_wins = 3
 
-	print("[BattleManager] Battle start: %s (target: %d wins)" % [enemy.enemy_name, target_wins])
+	print("[BattleManager] Battle start: %s (target: %d wins)" % [enemy.get_enemy_name(), target_wins])
 
 	while current_score[0] < target_wins and current_score[1] < target_wins:
 		round_number += 1
@@ -56,20 +56,22 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 	report.result = BattleEnums.EBattleResult.Victory if current_score[0] >= target_wins else BattleEnums.EBattleResult.Defeat
 
 	if report.result == BattleEnums.EBattleResult.Victory:
-		if enemy.loot_pool_prototype_ids.size() > 0:
-			var random_idx := randi() % enemy.loot_pool_prototype_ids.size()
-			report.cards_to_add.append(enemy.loot_pool_prototype_ids[random_idx])
-			print("[BattleManager] Loot awarded: %s" % enemy.loot_pool_prototype_ids[random_idx])
+		var loot_pool: Array = enemy.get_loot_pool_prototype_ids()
+		if loot_pool.size() > 0:
+			var random_idx: int = randi() % loot_pool.size()
+			report.cards_to_add.append(loot_pool[random_idx])
+			print("[BattleManager] Loot awarded: %s" % loot_pool[random_idx])
 	else:
 		var removable: Array[String] = []
-		for card in player_deck.cards:
-			if card.bind_status != CardData.CardBindStatus.Locked and not _is_disabled(card.instance_id, report):
-				removable.append(card.instance_id)
+		for c in player_deck.get_cards():
+			var card: CardSnapshot = c as CardSnapshot
+			if card and card.get_bind_status() != CardData.CardBindStatus.Locked and not _is_disabled(card.get_card_id(), report):
+				removable.append(card.get_card_id())
 		for remove_id in report.cards_to_remove:
 			if removable.has(remove_id):
 				removable.erase(remove_id)
 		if removable.size() > 0:
-			var random_idx := randi() % removable.size()
+			var random_idx: int = randi() % removable.size()
 			report.cards_to_remove.append(removable[random_idx])
 			print("[BattleManager] Card lost: %s" % removable[random_idx])
 
@@ -86,9 +88,12 @@ static func ProcessSelectedCards(
 	enemy: EnemyData,
 	data_manager
 ) -> Dictionary:
-	print("[BattleManager] ProcessSelectedCards ENTERED with %d cards" % player_snapshot.cards.size())
-	for card in player_snapshot.cards:
-		print("[BattleManager]   Card in snapshot: %s, cost_id: '%s'" % [card.prototype_id, card.cost_id])
+	var player_cards: Array = player_snapshot.get_cards()
+	print("[BattleManager] ProcessSelectedCards ENTERED with %d cards" % player_cards.size())
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			print("[BattleManager]   Card in snapshot: %s, cost_id: '%s'" % [card.get_prototype_id(), card.get_cost_id()])
 
 	var card_registry = data_manager.card_registry
 	var effect_registry = data_manager.effect_registry
@@ -98,7 +103,7 @@ static func ProcessSelectedCards(
 	var context := EffectContext.new(
 		player_snapshot,
 		null,
-		player_snapshot.cards,
+		player_cards,
 		[],
 		0,
 		0,
@@ -107,36 +112,47 @@ static func ProcessSelectedCards(
 		3
 	)
 
-	for card in player_snapshot.cards:
-		context.current_player_total += card.final_value
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			context.current_player_total += card.get_final_value()
 
-	var enemy_card_ids: Array[String] = _select_random_cards(enemy.deck_prototype_ids, 3)
+	var enemy_card_ids: Array[String] = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
 	var enemy_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
 	context.current_enemy_total = enemy_total
 
 	var all_effects: Array[String] = []
-	for card in player_snapshot.cards:
-		for eff_id in card.effect_ids:
-			all_effects.append(eff_id)
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			for eff_id in card.get_effect_ids():
+				all_effects.append(eff_id)
 
 	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_effects)
 	for effect in sorted_effects:
 		effect.apply(context)
 
-	for card in player_snapshot.cards:
-		print("[BattleManager] Checking card: %s, cost_id: '%s'" % [card.prototype_id, card.cost_id])
-		if card.cost_id != "":
-			print("[BattleManager] Card %s has cost: %s" % [card.prototype_id, card.cost_id])
-			var cost_handler: ICostHandler = cost_registry.get_cost(card.cost_id)
-			if cost_handler:
-				print("[BattleManager] Found cost handler for: %s" % card.cost_id)
-				var cost_ctx := CostContext.new(context, report, card, "player")
-				cost_handler.trigger(cost_ctx)
-			else:
-				print("[BattleManager] No cost handler found for: %s" % card.cost_id)
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			print("[BattleManager] Checking card: %s, cost_id: '%s'" % [card.get_prototype_id(), card.get_cost_id()])
+			if card.has_cost():
+				print("[BattleManager] Card %s has cost: %s" % [card.get_prototype_id(), card.get_cost_id()])
+				var cost_handler: ICostHandler = cost_registry.get_cost(card.get_cost_id())
+				if cost_handler:
+					print("[BattleManager] Found cost handler for: %s" % card.get_cost_id())
+					var cost_ctx := CostContext.new(context, report, card, "player")
+					cost_handler.trigger(cost_ctx)
+				else:
+					print("[BattleManager] No cost handler found for: %s" % card.get_cost_id())
 
+	var player_card_ids_debug: Array[String] = []
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			player_card_ids_debug.append(card.get_prototype_id())
 	print("[BattleManager] ProcessSelectedCards: Player(%s) %d vs %d Enemy(%s)" % [
-		player_snapshot.cards.map(func(c): return c.prototype_id),
+		player_card_ids_debug,
 		context.current_player_total,
 		context.current_enemy_total,
 		enemy_card_ids
@@ -151,7 +167,7 @@ static func ProcessSelectedCards(
 
 
 static func _is_disabled(instance_id: String, report: BattleReport) -> bool:
-	if report.disabled_instance_ids.has(instance_id):
+	if report.is_card_disabled(instance_id):
 		return true
 	return false
 
@@ -169,11 +185,13 @@ static func _simulate_round(
 	var detail := RoundDetail.new()
 	detail.round_number = round_num
 
-	var player_cards: Array[CardSnapshot] = _select_top_cards(player_deck, 3)
-	var enemy_card_ids: Array[String] = _select_random_cards(enemy.deck_prototype_ids, 3)
+	var player_cards: Array = _select_top_cards(player_deck, 3)
+	var enemy_card_ids: Array[String] = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
 
-	for card in player_cards:
-		detail.player_card_ids.append(card.prototype_id)
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			detail.player_card_ids.append(card.get_prototype_id())
 	for card_id in enemy_card_ids:
 		detail.enemy_card_ids.append(card_id)
 
@@ -181,9 +199,11 @@ static func _simulate_round(
 	var enemy_base_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
 
 	var all_player_effects: Array[String] = []
-	for card in player_cards:
-		for eff_id in card.effect_ids:
-			all_player_effects.append(eff_id)
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			for eff_id in card.get_effect_ids():
+				all_player_effects.append(eff_id)
 
 	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_player_effects)
 
@@ -212,9 +232,10 @@ static func _simulate_round(
 	else:
 		detail.result = BattleEnums.ERoundResult.Draw
 
-	for card in player_cards:
-		if card.cost_id != "":
-			var cost_handler: ICostHandler = cost_registry.get_cost(card.cost_id)
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card and card.has_cost():
+			var cost_handler: ICostHandler = cost_registry.get_cost(card.get_cost_id())
 			if cost_handler:
 				var cost_ctx := CostContext.new(context, report, card, "player")
 				cost_handler.trigger(cost_ctx)
@@ -231,11 +252,17 @@ static func _simulate_round(
 	return detail
 
 
-static func _select_top_cards(deck: DeckSnapshot, count: int) -> Array[CardSnapshot]:
-	var sorted_cards := deck.cards.duplicate()
-	sorted_cards.sort_custom(func(a, b): return a.final_value > b.final_value)
+static func _select_top_cards(deck: DeckSnapshot, count: int) -> Array:
+	var sorted_cards := deck.get_cards().duplicate()
+	sorted_cards.sort_custom(func(a, b):
+		var card_a: CardSnapshot = a as CardSnapshot
+		var card_b: CardSnapshot = b as CardSnapshot
+		if not card_a or not card_b:
+			return false
+		return card_a.get_final_value() > card_b.get_final_value()
+	)
 
-	var result: Array[CardSnapshot] = []
+	var result: Array = []
 	var limit := mini(count, sorted_cards.size())
 	for i in range(limit):
 		result.append(sorted_cards[i])
@@ -259,10 +286,12 @@ static func _select_random_cards(card_ids: Array[String], count: int) -> Array[S
 	return result
 
 
-static func _sum_card_values(cards: Array[CardSnapshot]) -> int:
+static func _sum_card_values(cards: Array) -> int:
 	var total: int = 0
 	for card in cards:
-		total += card.final_value
+		var c: CardSnapshot = card as CardSnapshot
+		if c:
+			total += c.get_final_value()
 	return total
 
 

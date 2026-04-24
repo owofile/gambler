@@ -85,12 +85,13 @@
 | 发送的信号 | `cards_confirmed(Array[String])` |
 | 接收的事件 | Flow_BattleStart, Flow_PlayerSelecting, Flow_BattleEnd 等 |
 
-### 3. CardManager (Autoload)
+### 4. CardMgr (Autoload)
 
 | 项目 | 说明 |
 |------|------|
 | 职责 | 管理玩家卡牌实例（Add/Remove/GetAll/GetSnapshot） |
 | 公开方法 | AddCard(prototypeId) → CardInstance, RemoveCard(instanceId) → bool, GetAllCards() → Array, GetDeckSnapshot(ids) → DeckSnapshot, GetDeckSize() → int |
+| 访问路径 | `/root/CardMgr` |
 
 ### 4. BattleManager (核心逻辑)
 
@@ -184,22 +185,23 @@ BattleManager/SceneRunner
                     │  (Autoload) │
                     └──────┬───────┘
                            │
-            ┌───────────────┼───────────────┐
-            │               │               │
-            ▼               ▼               ▼
-     ┌────────────┐   ┌───────────┐   ┌────────────┐
-     │CardManager│   │BattleUI  │   │BattleManager│
-     │ (Autoload)│   │          │   │            │
-     └─────┬─────┘   └─────┬─────┘   └────────────┘
-           │             │
-           │             │
-           │        ┌────┴────┐
-           │        │SceneRunner│
-           │        └────┬────┘
-           │             │
-           └─────────────┘
-                  
-                  get_node("/root/DataManager")
+           ┌───────────────┼───────────────┐
+           │               │               │
+           ▼               ▼               ▼
+      ┌────────────┐   ┌───────────┐   ┌────────────┐
+      │  CardMgr   │   │  BattleUI │   │BattleManager│
+      │ (Autoload) │   │           │   │            │
+      └─────┬──────┘   └─────┬─────┘   └────────────┘
+            │             │
+            │             │
+            │        ┌────┴────┐
+            │        │SceneRunner│
+            │        └────┬────┘
+            │             │
+            └─────────────┘
+
+           get_node("/root/DataManager")
+           get_node("/root/CardMgr")
 ```
 
 ---
@@ -251,18 +253,18 @@ cards_confirmed(selected_ids)         # 发送信号，SceneRunner 连接此信�
 Flow_BattleStart, Flow_PlayerSelecting, Flow_BattleEnd 等
 ```
 
-### CardManager 接口 (Autoload)
+### CardMgr Interface (Autoload)
 
 ```gdscript
 # 获取实例
-CardManager.AddCard(prototypeId: String) → CardInstance
-CardManager.RemoveCard(instanceId: String) → bool
-CardManager.GetAllCards() → Array[CardInstance]
-CardManager.GetDeckSnapshot(ids: Array[String]) → DeckSnapshot
-CardManager.GetDeckSize() → int
+CardMgr.add_card(prototypeId: String) → CardInstance
+CardMgr.remove_card(instanceId: String) → bool
+CardMgr.get_all_cards() → Array
+CardMgr.get_deck_snapshot(ids: Array) → DeckSnapshot
+CardMgr.get_deck_size() → int
 
 # 访问方式
-get_node("/root/CardManager").AddCard(...)
+get_node("/root/CardMgr").add_card(...)
 ```
 
 ### BattleManager 接口

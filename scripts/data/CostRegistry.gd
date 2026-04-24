@@ -15,5 +15,5 @@ func get_cost(cost_id: String) -> ICostHandler:
 		return _costs[cost_id]
 	return null
 
-func get_all_cost_ids() -> Array[String]:
+func get_all_cost_ids() -> Array:
 	return Array(_costs.keys(), TYPE_STRING, "", null)
