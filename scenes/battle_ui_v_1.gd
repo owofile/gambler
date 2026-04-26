@@ -34,6 +34,21 @@ var _original_positions: Dictionary = {}
 var _target_wins: int = 3
 var _current_score: Array[int] = [0, 0]
 
+var _card_info_panel: Control = null
+var _card_info_label: RichTextLabel = null
+var _card_info_name_label: Label = null
+
+const CARD_INFO_OFFSET_X := -80
+const CARD_INFO_OFFSET_Y := 10
+
+const CARD_INFO_PANEL_SIZE_X := 180
+const CARD_INFO_PANEL_SIZE_Y := 120
+
+const CARD_INFO_BORDER_WIDTH := 2
+
+const CARD_INFO_CONTENT_OFFSET_X := 10
+const CARD_INFO_CONTENT_OFFSET_Y := 10
+
 func _ready() -> void:
 	_card_manager = get_node_or_null("/root/CardMgr")
 	_data_manager = get_node_or_null("/root/DataManager")
@@ -49,7 +64,46 @@ func _ready() -> void:
 	_connect_user_card_signals()
 	_subscribe_to_events()
 	_do_refresh_hand()
+	_create_card_info_panel()
 	print("[BattleUI_v1] Ready")
+
+func _create_card_info_panel() -> void:
+	_card_info_panel = Control.new()
+	_card_info_panel.z_index = 100
+	_card_info_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	add_child(_card_info_panel)
+
+	var panel_bg = ColorRect.new()
+	panel_bg.custom_minimum_size = Vector2(CARD_INFO_PANEL_SIZE_X, CARD_INFO_PANEL_SIZE_Y)
+	panel_bg.color = Color(0.1, 0.1, 0.15, 0.95)
+	_card_info_panel.add_child(panel_bg)
+
+	var border = ColorRect.new()
+	border.custom_minimum_size = Vector2(CARD_INFO_PANEL_SIZE_X + CARD_INFO_BORDER_WIDTH * 2, CARD_INFO_PANEL_SIZE_Y + CARD_INFO_BORDER_WIDTH * 2)
+	border.position = Vector2(-CARD_INFO_BORDER_WIDTH, -CARD_INFO_BORDER_WIDTH)
+	border.color = Color(0.6, 0.5, 0.3, 1.0)
+	panel_bg.add_child(border)
+	border.z_index = -1
+
+	var vbox = VBoxContainer.new()
+	vbox.position = Vector2(CARD_INFO_CONTENT_OFFSET_X, CARD_INFO_CONTENT_OFFSET_Y)
+	vbox.custom_minimum_size = Vector2(CARD_INFO_PANEL_SIZE_X - CARD_INFO_CONTENT_OFFSET_X * 2, CARD_INFO_PANEL_SIZE_Y - CARD_INFO_CONTENT_OFFSET_Y * 2)
+	panel_bg.add_child(vbox)
+
+	_card_info_name_label = Label.new()
+	_card_info_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_card_info_name_label.add_theme_font_size_override("font_size", 14)
+	_card_info_name_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5, 1.0))
+	vbox.add_child(_card_info_name_label)
+
+	_card_info_label = RichTextLabel.new()
+	_card_info_label.custom_minimum_size = Vector2(CARD_INFO_PANEL_SIZE_X - CARD_INFO_CONTENT_OFFSET_X * 2, CARD_INFO_PANEL_SIZE_Y - CARD_INFO_CONTENT_OFFSET_Y * 2 - 20)
+	_card_info_label.bbcode_enabled = true
+	_card_info_label.fit_content = true
+	_card_info_label.scroll_active = false
+	vbox.add_child(_card_info_label)
+
+	_card_info_panel.visible = false
 
 func _connect_user_card_signals() -> void:
 	if user_card_component:
@@ -61,10 +115,81 @@ func _on_card_hovered(index: int) -> void:
 	if not _selection_enabled:
 		return
 	_hovered_index = index
+	_show_card_info(index)
 
 func _on_card_unhovered(index: int) -> void:
 	if _hovered_index == index:
 		_hovered_index = -1
+		_hide_card_info()
+
+func _show_card_info(index: int) -> void:
+	if index < 0 or index >= _all_cards.size() or _card_info_panel == null:
+		return
+
+	var card_instance: CardInstance = _all_cards[index] as CardInstance
+	if card_instance == null or _data_manager == null:
+		return
+
+	var prototype_id = card_instance.get_prototype_id()
+	var prototype: CardData = _data_manager.card_registry.get_prototype(prototype_id)
+	if prototype == null:
+		return
+
+	var card_name = _format_card_name(prototype_id)
+	var card_class_str = CardData.class_name_to_string(prototype.card_class)
+	var total_value = card_instance.get_total_value(prototype)
+
+	_card_info_name_label.text = card_name
+
+	var info_text = ""
+	info_text += "[color=yellow]Type:[/color] [color=white]%s[/color]\n" % card_class_str
+	info_text += "[color=yellow]Value:[/color] [color=white]%d[/color]" % total_value
+
+	if prototype.effect_ids.size() > 0:
+		info_text += "\n[color=yellow]Effects:[/color]"
+		for effect_id in prototype.effect_ids:
+			info_text += "\n  [color=cyan]• %s[/color]" % effect_id
+
+	if prototype.cost_id != "":
+		info_text += "\n[color=yellow]Cost:[/color] [color=red]%s[/color]" % prototype.cost_id
+
+	if card_instance.get_bind_status() != CardData.CardBindStatus.None:
+		info_text += "\n[color=purple]Status:[/color] %s" % CardInstance.bind_status_to_string(card_instance.get_bind_status())
+
+	_card_info_label.text = info_text
+	_card_info_panel.visible = true
+
+func _hide_card_info() -> void:
+	if _card_info_panel:
+		_card_info_panel.visible = false
+
+func _update_card_info_position() -> void:
+	if _card_info_panel == null or not _card_info_panel.visible or _hovered_index < 0 or _hovered_index >= _card_nodes.size():
+		return
+
+	var card = _card_nodes[_hovered_index]
+	if not card.visible:
+		return
+
+	var target_pos = _original_positions[card]
+	target_pos.y += HOVER_OFFSET_Y
+
+	var wobble_x = sin(_wobble_time * SHAKE_SPEED + _hovered_index * 1.5) * SHAKE_AMPLITUDE
+	var wobble_y = cos(_wobble_time * SHAKE_SPEED * 0.7 + _hovered_index * 1.2) * (SHAKE_AMPLITUDE * 0.5)
+
+	var target_with_wobble = target_pos + Vector2(wobble_x, wobble_y)
+
+	_card_info_panel.position = target_with_wobble + Vector2(CARD_INFO_OFFSET_X, CARD_INFO_OFFSET_Y)
+
+func _format_card_name(prototype_id: String) -> String:
+	var name = prototype_id.replace("card_", "")
+	var words = name.split("_")
+	var formatted = ""
+	for word in words:
+		if word.length() > 0:
+			formatted += word.capitalize()
+			formatted += " "
+	return formatted.strip_edges()
 
 func _on_card_clicked(index: int) -> void:
 	if not _selection_enabled:
@@ -134,6 +259,7 @@ func _update_card_display() -> void:
 func _process(delta: float) -> void:
 	_wobble_time += delta
 	_update_card_animations(delta)
+	_update_card_info_position()
 
 func _update_card_animations(delta: float) -> void:
 	for i in range(_card_nodes.size()):
@@ -183,6 +309,7 @@ func enable_selection(enabled: bool) -> void:
 	_selection_enabled = enabled
 	if not enabled:
 		_hovered_index = -1
+		_hide_card_info()
 
 func update_selection(selected_ids: Array[String]) -> void:
 	_selected_indices.clear()

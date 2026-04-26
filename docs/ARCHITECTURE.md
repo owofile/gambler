@@ -16,6 +16,7 @@
 | 2026-04-24 | v2.0 | 新战斗流程系统：BattleFlowManager 状态机、CardSelector、AnimationController |
 | 2026-04-24 | v2.1 | 状态机与 BattleManager 整合，代价系统完整工作，Logger 日志系统 |
 | 2026-04-25 | v2.2 | 新增 BattleUI_v1 场景（Node2D 架构），卡片动画与交互系统 |
+| 2026-04-26 | v2.3 | 新增卡牌信息悬停面板，显示卡牌名称、类型、点数、效果等信息 |
 
 ---
 
@@ -358,6 +359,20 @@ battle_ui.on_battle_complete(report)        # 战斗结束后调用
 - 选中效果：选中后卡牌变为暖黄色 (`Color(1.3, 1.0, 0.8, 1.0)`)
 - 出牌选择：点击选择1-3张牌，确认后触发战斗
 - 战斗流程：完整接入 BattleFlowManager 状态机
+- **卡牌信息面板**：鼠标悬停时在卡牌上方显示详细信息面板
+
+**卡牌信息面板功能**：
+- 动态创建 `Control` 节点作为面板容器
+- 显示内容：卡牌名称、类型、最终点数（含delta值）、特效列表、代价、锁定/诅咒状态
+- 面板跟随卡牌位置，带有相同的晃动动画效果
+- 可调整变量（定义在 `battle_ui_v_1.gd` 第41-50行）：
+
+| 变量 | 说明 |
+|------|------|
+| `CARD_INFO_OFFSET_X/Y` | 面板整体相对卡牌的偏移 |
+| `CARD_INFO_PANEL_SIZE_X/Y` | 面板尺寸 |
+| `CARD_INFO_BORDER_WIDTH` | 金色边框宽度 |
+| `CARD_INFO_CONTENT_OFFSET_X/Y` | 文字内容相对面板内边距 |
 
 **信号**（user_card.gd → battle_ui_v_1.gd）：
 ```gdscript
