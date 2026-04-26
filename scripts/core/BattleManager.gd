@@ -62,7 +62,7 @@ static func StartBattle(player_deck: DeckSnapshot, enemy: EnemyData, data_manage
 			report.cards_to_add.append(loot_pool[random_idx])
 			print("[BattleManager] Loot awarded: %s" % loot_pool[random_idx])
 	else:
-		var removable: Array[String] = []
+		var removable: Array = []
 		for c in player_deck.get_cards():
 			var card: CardSnapshot = c as CardSnapshot
 			if card and card.get_bind_status() != CardData.CardBindStatus.Locked and not _is_disabled(card.get_card_id(), report):
@@ -115,20 +115,20 @@ static func ProcessSelectedCards(
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
 		if card:
-			context.current_player_total += card.get_final_value()
+			context.add_player_total(card.get_final_value())
 
-	var enemy_card_ids: Array[String] = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
+	var enemy_card_ids: Array = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
 	var enemy_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
-	context.current_enemy_total = enemy_total
+	context.set_current_enemy_total(enemy_total)
 
-	var all_effects: Array[String] = []
+	var all_effects: Array = []
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
 		if card:
 			for eff_id in card.get_effect_ids():
 				all_effects.append(eff_id)
 
-	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_effects)
+	var sorted_effects: Array = effect_registry.get_effects_sorted_by_priority(all_effects)
 	for effect in sorted_effects:
 		effect.apply(context)
 
@@ -146,21 +146,21 @@ static func ProcessSelectedCards(
 				else:
 					print("[BattleManager] No cost handler found for: %s" % card.get_cost_id())
 
-	var player_card_ids_debug: Array[String] = []
+	var player_card_ids_debug: Array = []
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
 		if card:
 			player_card_ids_debug.append(card.get_prototype_id())
 	print("[BattleManager] ProcessSelectedCards: Player(%s) %d vs %d Enemy(%s)" % [
 		player_card_ids_debug,
-		context.current_player_total,
-		context.current_enemy_total,
+		context.get_current_player_total(),
+		context.get_current_enemy_total(),
 		enemy_card_ids
 	])
 
 	return {
-		"player_total": context.current_player_total,
-		"enemy_total": context.current_enemy_total,
+		"player_total": context.get_current_player_total(),
+		"enemy_total": context.get_current_enemy_total(),
 		"enemy_card_ids": enemy_card_ids,
 		"report": report
 	}
@@ -186,7 +186,7 @@ static func _simulate_round(
 	detail.round_number = round_num
 
 	var player_cards: Array = _select_top_cards(player_deck, 3)
-	var enemy_card_ids: Array[String] = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
+	var enemy_card_ids: Array = _select_random_cards(enemy.get_deck_prototype_ids(), 3)
 
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
@@ -198,14 +198,14 @@ static func _simulate_round(
 	var player_base_total: int = _sum_card_values(player_cards)
 	var enemy_base_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
 
-	var all_player_effects: Array[String] = []
+	var all_player_effects: Array = []
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
 		if card:
 			for eff_id in card.get_effect_ids():
 				all_player_effects.append(eff_id)
 
-	var sorted_effects: Array[IEffectHandler] = effect_registry.get_effects_sorted_by_priority(all_player_effects)
+	var sorted_effects: Array = effect_registry.get_effects_sorted_by_priority(all_player_effects)
 
 	var context := EffectContext.new(
 		player_deck,
@@ -222,12 +222,12 @@ static func _simulate_round(
 	for effect in sorted_effects:
 		effect.apply(context)
 
-	detail.player_total_value = context.current_player_total
-	detail.enemy_total_value = context.current_enemy_total
+	detail.player_total_value = context.get_current_player_total()
+	detail.enemy_total_value = context.get_current_enemy_total()
 
-	if context.current_player_total > context.current_enemy_total:
+	if context.get_current_player_total() > context.get_current_enemy_total():
 		detail.result = BattleEnums.ERoundResult.PlayerWin
-	elif context.current_player_total < context.current_enemy_total:
+	elif context.get_current_player_total() < context.get_current_enemy_total():
 		detail.result = BattleEnums.ERoundResult.EnemyWin
 	else:
 		detail.result = BattleEnums.ERoundResult.Draw
@@ -269,18 +269,19 @@ static func _select_top_cards(deck: DeckSnapshot, count: int) -> Array:
 	return result
 
 
-static func _select_random_cards(card_ids: Array[String], count: int) -> Array[String]:
+static func _select_random_cards(card_ids: Array, count: int) -> Array:
 	if card_ids.size() == 0:
 		return []
 
-	var result: Array[String] = []
-	var available := card_ids.duplicate()
+	var result: Array = []
+	var available: Array = card_ids.duplicate()
 
 	for i in range(mini(count, card_ids.size())):
 		if available.size() == 0:
 			break
 		var idx := randi() % available.size()
-		result.append(available[idx])
+		var card_id: String = available[idx]
+		result.append(card_id)
 		available.remove_at(idx)
 
 	return result
@@ -295,7 +296,7 @@ static func _sum_card_values(cards: Array) -> int:
 	return total
 
 
-static func _sum_enemy_card_values(card_ids: Array[String], registry) -> int:
+static func _sum_enemy_card_values(card_ids: Array, registry) -> int:
 	var total: int = 0
 	for proto_id in card_ids:
 		var proto: CardData = registry.get_prototype(proto_id)

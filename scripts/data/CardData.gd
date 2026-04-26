@@ -19,7 +19,7 @@ enum CardBindStatus {
 var prototype_id: String
 var card_class: CardClass
 var base_value: int
-var effect_ids: Array[String]
+var effect_ids: Array = []
 var cost_id: String
 var is_lockable: bool
 
@@ -27,7 +27,7 @@ func _init(
 	p_id: String = "",
 	p_class: CardClass = CardClass.Artifact,
 	p_value: int = 0,
-	p_effects: Array[String] = [],
+	p_effects: Array = [],
 	p_cost: String = "",
 	p_lockable: bool = true
 ) -> void:

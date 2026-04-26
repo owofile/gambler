@@ -11,14 +11,24 @@ config_version=5
 [application]
 
 config/name="gambler"
-run/main_scene="res://MainV2.tscn"
+run/main_scene="res://scenes/Thryzhn/MainMenu/MainMenu/main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[audio]
+
+buses/default_bus_layout="res://sound/default_bus_layout.tres"
 
 [autoload]
 
 DataManager="*res://scripts/autoload/DataManager.gd"
 CardMgr="*res://scripts/core/CardManager.gd"
 EventBus="*res://scripts/core/EventBus.gd"
+GameState="*res://scripts/core/GameStateManager.gd"
+SceneChanger="*res://scenes/Thryzhn/SceneChanger/Scene_Changer/scene_changer.tscn"
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [rendering]
 

@@ -2,7 +2,7 @@ class_name UUID
 extends RefCounted
 
 static func v4() -> String:
-	var bytes: Array[int] = []
+	var bytes: Array = []
 	for i in 16:
 		bytes.append(randi() % 256)
 	bytes[6] = (bytes[6] & 0x0F) | 0x40

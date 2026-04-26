@@ -1,0 +1,30 @@
+[gd_scene load_type="PackedScene" format=3 uid="uid://bh1wvi3cky7xu"]
+
+[sub_resource type="GDScript" id="GDScript_sample_world"]
+script/subpath = "res://scripts/world/SampleWorld.gd"
+
+[node name="SampleWorld" type="Node2D"]
+
+[node name="Player" type="PlayerController" parent="."]
+unique_name_in_owner = true
+position = Vector2(100, 100)
+
+[node name="PlayerTest" type="Node2D" parent="Player"]
+is_flipped = false
+
+[node name="Sprite2D" type="Sprite2D" parent="Player/PlayerTest"]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Player/PlayerTest"]
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+
+[node name="BattleTrigger" type="BattleTrigger" parent="."]
+position = Vector2(400, 100)
+enemy_id = "grunt_01"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BattleTrigger"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="BattleTransition" type="BattleTransition" parent="."]
+battle_scene_path = "res://scenes/BattleUI.tscn"
