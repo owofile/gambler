@@ -36,7 +36,30 @@ func setup(battle_ui: Node, enemy: EnemyData) -> void:
 		_battle_ui.cards_confirmed.connect(_on_cards_confirmed)
 
 	_setup_battle_flow()
+	_start_battle()
 	print("[BattleRunner] Setup complete with enemy: %s" % enemy.get_enemy_name())
+
+func _start_battle() -> void:
+	if not _card_manager:
+		push_error("[BattleRunner] CardMgr not available!")
+		return
+
+	var all_card_ids: Array = []
+	for card in _card_manager.get_all_cards():
+		var c: CardInstance = card as CardInstance
+		if c:
+			all_card_ids.append(c.get_card_id())
+
+	if all_card_ids.size() == 0:
+		push_error("[BattleRunner] No cards in deck! Cannot start battle.")
+		return
+
+	var snapshot = _card_manager.get_deck_snapshot(all_card_ids)
+	var config = BattleConfig.from_enemy_data(_current_enemy)
+	config.target_wins = target_wins
+
+	if _battle_flow:
+		_battle_flow.start_battle(snapshot, _current_enemy, config)
 
 func _setup_battle_flow() -> void:
 	_battle_flow = BattleFlow.new()

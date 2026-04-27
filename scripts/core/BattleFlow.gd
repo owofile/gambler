@@ -226,7 +226,8 @@ func _execute_consume() -> void:
 	if _config.enable_card_consumption:
 		var consumed = _card_consumer.consume_played_cards(_selected_card_ids, _disabled_card_ids)
 		print("[BattleFlow] Consumed %d cards" % consumed.size())
-		_battle_report.set_cards_to_remove(consumed)
+		for card_id in consumed:
+			_battle_report.add_card_to_remove(card_id)
 
 	_publish("Flow_CardsConsumed", {"cards": _selected_card_ids})
 
