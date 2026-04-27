@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://libjee2g4llp"]
+
+[ext_resource type="Texture2D" uid="uid://bqu6v1jkdo3vi" path="res://Art/logo_antver.png" id="1_67m5j"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ugtk6"]
+size = Vector2(83, 149)
+
+[node name="Door" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-30, -64)
+scale = Vector2(0.0555556, 0.126389)
+texture = ExtResource("1_67m5j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-31.5, -64.5)
+shape = SubResource("RectangleShape2D_ugtk6")

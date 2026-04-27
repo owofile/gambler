@@ -1,6 +1,6 @@
 extends Node
 
-var _initial_cards: Array[String] = [
+var _initial_cards: Array = [
 	"card_rusty_sword",
 	"card_friendly_spirit",
 	"card_justice",
@@ -39,7 +39,7 @@ func _setup_ui() -> void:
 
 func _setup_event_listeners() -> void:
 	var event_bus = _get_event_bus()
-	event_bus.Subscribe("BattleEnded", _on_battle_ended_listener)
+	event_bus.subscribe("BattleEnded", _on_battle_ended_listener)
 
 func start_game() -> void:
 	var card_mgr = _get_card_manager()
@@ -61,7 +61,7 @@ func start_game() -> void:
 	else:
 		_log("[SceneRunner] Failed to load enemy!")
 
-func _on_cards_confirmed(selected_ids: Array[String]) -> void:
+func _on_cards_confirmed(selected_ids: Array) -> void:
 	_log("[SceneRunner] Cards confirmed: %s" % selected_ids)
 
 	var card_mgr = _get_card_manager()

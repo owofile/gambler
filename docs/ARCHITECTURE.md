@@ -17,15 +17,20 @@
 | 2026-04-24 | v2.1 | 状态机与 BattleManager 整合，代价系统完整工作，Logger 日志系统 |
 | 2026-04-25 | v2.2 | 新增 BattleUI_v1 场景（Node2D 架构），卡片动画与交互系统 |
 | 2026-04-26 | v2.3 | 新增卡牌信息悬停面板，显示卡牌名称、类型、点数、效果等信息 |
+| 2026-04-27 | v3.4 | 修复多个运行时错误：Grass着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单启动时音量设置未加载 |
+| 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem)，MVC模式，NarrativeEngine与UI解耦 |
+| 2026-04-27 | v3.2 | 新增MapManager、QuestManager、示例配置JSON |
+| 2026-04-27 | v3.1 | 新增事件总线增强（幂等+确认机制）、WorldState、SaveManager、NarrativeEngine |
+| 2026-04-27 | v3.0 | 整合thryzhn横板探索系统，新增PlayerController、GameState、SceneChanger、DialogueSystem、BattleRunner |
 
 ---
 
 ## 1. 系统概述
 
-本项目是 Godot 4.3 卡牌对战游戏，核心系统包括：
-- 卡牌原型注册系统
-- 卡牌实例管理系统
-- 敌人登记系统
+本项目是 Godot 4.3 融合型游戏，核心系统包括：
+- **横板探索系统**：基于thryzhn的移动、状态机、场景切换
+- **卡牌战斗系统**：完整的卡牌对战机制
+- **剧情对话系统**：NPC对话与事件触发
 
 ---
 
@@ -62,12 +67,29 @@ gambler/
 │   │   ├── CardManager.gd       # 卡牌管理模块
 │   │   ├── BattleManager.gd     # 战斗核心模块
 │   │   ├── EventBus.gd          # 事件总线
+│   │   ├── GameState.gd         # 游戏状态管理 (v3.0)
 │   │   ├── BattleFlowManager.gd # 战斗流程状态机 (v2.0)
 │   │   ├── CardSelector.gd      # 选牌管理器 (v2.0)
 │   │   ├── AnimationController.gd # 动画控制器 (v2.0)
 │   │   ├── SceneRunner.gd       # 测试场景运行器（v1.x）
 │   │   ├── SceneRunnerV2.gd    # 测试场景运行器（v2.0）
 │   │   └── GameRunner.gd        # 旧测试脚本（保留）
+│   ├── player/                  # 玩家系统 (v3.0)
+│   │   ├── PlayerController.gd  # 玩家控制器
+│   │   ├── PlayerStateMachine.gd # 玩家状态机
+│   │   └── states/
+│   │       ├── IPlayerState.gd   # 状态接口
+│   │       ├── IdleState.gd      # 待机状态
+│   │       ├── WalkState.gd      # 移动状态
+│   │       └── BattleStartState.gd # 进入战斗状态
+│   ├── world/                    # 世界/探索系统 (v3.0)
+│   │   ├── WorldManager.gd       # 世界管理器
+│   │   ├── BattleTrigger.gd      # 战斗触发器
+│   │   ├── BattleTransition.gd    # 战斗过渡
+│   │   ├── ExplorationController.gd # 探索控制器
+│   │   └── SampleWorld.gd        # 示例世界场景
+│   ├── dialogue/                 # 对话系统 (v3.0)
+│   │   └── DialogueSystem.gd     # 对话系统
 │   ├── ui/                      # UI 系统
 │   │   └── BattleUI.gd          # 战斗界面 UI 控制器
 │   ├── events/                  # 事件负载定义
@@ -78,13 +100,20 @@ gambler/
 │   │   └── DataManager.gd       # 全局单例，统一访问注册表
 │   └── utils/
 │       └── UUID.gd              # UUID v4 生成工具
-├── resources/                   # 数据资源文件
-│   ├── card_prototypes.json    # 卡牌原型配置
-│   └── enemy_registry.json      # 敌人配置
-├── scenes/                      # 场景文件
+├── scenes/
+│   ├── Thryzhn/                 # thryzhn整合资源
+│   │   ├── MainMenu/            # 主菜单场景
+│   │   ├── SceneChanger/        # 场景切换器
+│   │   ├── TestScenes/cave/     # 洞穴测试场景
+│   │   ├── Player/               # 玩家角色资源
+│   │   ├── Foreground_Scenes/    # 前景场景
+│   │   └── Sound/                # 音效资源
 │   ├── BattleUI.tscn           # 战斗 UI 场景
 │   ├── Main.tscn               # 主场景（v1.x）
 │   └── MainV2.tscn             # 主场景（v2.0）
+├── resources/                   # 数据资源文件
+│   ├── card_prototypes.json    # 卡牌原型配置
+│   └── enemy_registry.json      # 敌人配置
 └── project.godot                # Godot 项目配置
 ```
 
@@ -607,3 +636,233 @@ BattleUI.refresh_hand() 更新手牌显示
 3. **可序列化**: 所有数据结构支持 JSON 序列化，方便存档
 4. **面向对象**: 使用 Godot 的 `class_name` 和 `extends RefCounted`
 5. **解耦**: Autoload 提供单一访问点，避免直接依赖
+
+---
+
+## 9. 游戏模式与状态管理 (v3.0)
+
+### 9.1 GameState (游戏状态管理)
+
+**文件**: `scripts/core/GameStateManager.gd`
+
+- Autoload 单例，管理游戏模式切换
+- 三种模式：EXPLORATION（探索）、DIALOGUE（对话）、BATTLE（战斗）
+
+**对外接口**：
+```gdscript
+GameState.enter_exploration()  # 进入探索模式
+GameState.enter_dialogue()     # 进入对话模式
+GameState.enter_battle()      # 进入战斗模式
+GameState.is_exploration()    # 是否探索模式
+GameState.is_battle()          # 是否战斗模式
+```
+
+**事件发布**：
+- `GameModeChanged`: 当游戏模式改变时发布
+
+### 9.2 PlayerController (玩家控制器)
+
+**文件**: `scripts/player/PlayerController.gd`
+
+- 继承 `CharacterBody2D`
+- 管理玩家移动输入和状态转换
+- 基于thryzhn的 `player_test_example.gd` 重构
+
+**状态枚举**：
+```gdscript
+enum PlayerState {
+    IDLE = 0,
+    LEFT = 1,
+    RIGHT = 2,
+    UP = 3,
+    DOWN = 4,
+    BATTLE_START = 5
+}
+```
+
+### 9.3 BattleRunner (战斗协调器)
+
+**文件**: `scripts/core/BattleRunner.gd`
+
+- 独立战斗协调者，管理回合流程和比分
+- 当不通过 SceneRunnerV2 进入战斗时使用
+
+**对外接口**：
+```gdscript
+BattleRunner.setup(battle_ui, enemy)  # 初始化战斗
+BattleRunner.target_wins = 3          # 设置获胜目标
+```
+
+### 9.4 SceneChanger (场景切换器)
+
+**文件**: `scenes/Thryzhn/SceneChanger/Scene_Changer/scene_changer.gd`
+
+- Autoload 单例
+- 处理场景切换时的渐变动画
+- 对外接口：`SceneChanger.scene_changer(path)`
+
+### 9.5 探索→战斗流程
+
+```
+探索模式
+    ↓ (玩家进入BattleTrigger区域)
+BattleRequested事件
+    ↓
+GameState.enter_battle()
+    ↓
+SceneChanger.scene_changer() → 切换到战斗场景
+    ↓
+战斗完成 → BattleEnded事件
+    ↓
+返回探索模式
+```
+
+---
+
+## 10. 已知问题 (v3.0)
+
+### 10.1 Godot 4 GDScript 类型限制
+
+Godot 4 GDScript 不支持 `Array[Type]` 写法，所有数组类型已改为无类型 `Array`。
+
+### 10.2 战斗系统说明
+
+- `BattleUI_v1.tscn` 可独立运行，自动初始化卡组
+- 完整战斗流程建议通过 `SceneRunnerV2` 协调
+
+---
+
+## 11. 事件列表 (v3.0)
+
+| 事件名 | Payload 类型 | 触发时机 |
+|--------|-------------|---------|
+| `BattleEnded` | BattleEndedPayload | 战斗结算完成 |
+| `CardAcquired` | CardAcquiredPayload | 卡牌获得时 |
+| `CardLost` | CardLostPayload | 卡牌失去时 |
+| `GameModeChanged` | Dictionary {from, to} | 游戏模式改变 |
+| `BattleRequested` | Dictionary {enemy_id} | 玩家请求战斗 |
+| `PlayerEnterBattle` | null | 玩家进入战斗 |
+| `DialogueEnded` | {} | 对话结束 |
+
+---
+
+## 12. v3.1 更新：领域驱动架构完善
+
+### 12.1 限界上下文完成度
+
+| 上下文 | 状态 | 核心模块 |
+|--------|------|----------|
+| 战斗 | ✅ 完成 | BattleManager, BattleFlowManager |
+| 卡牌 | ✅ 完成 | CardManager (含clear_all_cards) |
+| 叙事 | ✅ 完成 | NarrativeEngine, DialogueSystem |
+| 世界 | ✅ 完成 | WorldState, SaveManager |
+
+### 12.2 事件总线增强
+
+新增 `publish_with_ack` / `subscribe_with_ack` 支持命令+确认模式。
+
+新增事件ID追踪，相同event_id的事件不会重复处理。
+
+### 12.3 WorldState
+
+```gdscript
+# 键值对存储
+WorldState.set_flag("quest_progress", 3)
+WorldState.set_flag("npc_dead_merchant", false)
+WorldState.get_flag("quest_progress", 0)  # 支持默认值
+
+# 存档支持
+var save_data = WorldState.get_save_data()
+WorldState.load_save_data(save_data)
+```
+
+### 12.4 SaveManager
+
+```gdscript
+# 手动存档
+SaveManager.save_game()
+SaveManager.load_game()
+
+# 自动存档
+SaveManager.auto_save()
+
+# 检查存档
+SaveManager.has_save()  # 检查autosave
+SaveManager.list_saves()
+```
+
+### 12.5 NarrativeEngine
+
+对话树从JSON加载，支持条件-效应规则：
+
+```json
+{
+  "nodes": {
+    "start": {
+      "speaker": "NPC",
+      "text": "Hello!",
+      "options": [
+        {
+          "text": "Yes",
+          "conditions": [{ "type": "HasFlag", "params": { "flag": "met_npc" } }],
+          "effects": [{ "type": "SetFlag", "params": { "flag": "talked", "value": true } }]
+        }
+      ]
+    }
+  }
+}
+```
+
+触发方式：
+```gdscript
+EventBus.publish("StartDialogueTree", {"path": "res://dialogues/merchant.json"})
+```
+
+---
+
+## 13. v3.4 更新：运行时错误修复
+
+### 13.1 修复内容
+
+| 文件 | 问题 | 修复方式 |
+|------|------|----------|
+| `Grass.tscn` | 依赖 `Grass_Sway.gdshader` 缺失 | 从 thryzhn 复制 Shader 文件夹到 gambler |
+| `main_menu_controller.gd:58` | `SceneManager.change_scene()` 静态调用错误 | 改为 `get_tree().change_scene_to_file()` |
+| `CardSelector.gd:31,155` | `_available_cards` 变量未声明 | 添加 `var _available_cards: Array = []` |
+| `main.gd` (主菜单) | 主菜单启动时不加载音量设置 | 新增 `_load_settings_once()` 在 `_ready()` 时加载并应用设置 |
+
+### 13.2 设置系统
+
+**配置文件路径**: `user://settings.cfg`（`%APPDATA%/gambler/settings.cfg`）
+
+**默认音量**:
+| 设置项 | 默认值 | 范围 |
+|--------|--------|------|
+| BGM | 40% | 0-100% |
+| SFX | 70% | 0-100% |
+
+**加载时机**: 主菜单场景 `main.gd` 的 `_ready()` 时自动加载并应用（无需进入设置界面）
+
+### 13.3 待办
+
+- [ ] SceneRunnerV2 运行时编译错误排查（如仍有报错）
+- [ ] Settings 界面重构为独立场景，避免重复实例化 settingsManager
+
+---
+
+## 14. 已知问题 (v3.1)
+
+### 14.1 Godot 4 GDScript 类型限制
+
+Godot 4 GDScript 不支持 `Array[Type]` 写法，所有数组类型已改为无类型 `Array`。
+
+### 14.2 待集成
+
+- NarrativeEngine 需要与 DialogueSystem UI 深度集成
+- MapManager 尚未实现（区域配置、解锁、传送点）
+- QuestManager 尚未实现
+
+### 14.3 战斗系统说明
+
+- `BattleUI_v1.tscn` 可独立运行，自动初始化卡组
+- 完整战斗流程建议通过 `SceneRunnerV2` 协调

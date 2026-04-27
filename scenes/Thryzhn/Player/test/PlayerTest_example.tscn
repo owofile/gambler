@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://p3d7nkl2uubt"]
+
+[ext_resource type="Script" path="res://scenes/Thryzhn/Player/test/gd/player_test_example.gd" id="1_i82xw"]
+[ext_resource type="PackedScene" uid="uid://dofdhsxl5pbrp" path="res://scenes/Thryzhn/Player/test/PlayerTest.tscn" id="1_penx6"]
+[ext_resource type="Script" path="res://scenes/Thryzhn/Player/test/gd/StateMachine.gd" id="3_3ijd6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x337t"]
+size = Vector2(163, 98)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qeoo7"]
+size = Vector2(247, 186.5)
+
+[node name="PlayerTestExample" type="CharacterBody2D"]
+script = ExtResource("1_i82xw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(2, -58)
+shape = SubResource("RectangleShape2D_x337t")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("3_3ijd6")
+
+[node name="PlayerTest" parent="." instance=ExtResource("1_penx6")]
+position = Vector2(3.5, 11)
+
+[node name="testplayer" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="testplayer"]
+position = Vector2(3.5, -101.75)
+shape = SubResource("RectangleShape2D_qeoo7")

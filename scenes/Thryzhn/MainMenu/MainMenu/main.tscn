@@ -1,0 +1,43 @@
+[gd_scene load_steps=4 format=3 uid="uid://dyfdj3r6clswc"]
+
+[ext_resource type="Script" path="res://scenes/Thryzhn/MainMenu/MainMenu/gd/main.gd" id="1_c03k0"]
+[ext_resource type="Texture2D" uid="uid://dcqnk1fas0bxe" path="res://scenes/Thryzhn/MainMenu/texture/main_ui.png" id="1_cfjg1"]
+[ext_resource type="AudioStream" uid="uid://tnkt6sbx38u2" path="res://scenes/Thryzhn/Sound/SFX/UI_Button_Hover_01.ogg" id="3_jmwa6"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_c03k0")
+
+[node name="title" type="Sprite2D" parent="."]
+position = Vector2(585, 245)
+texture = ExtResource("1_cfjg1")
+region_enabled = true
+region_rect = Rect2(273, 135, 630, 227)
+
+[node name="start" type="Sprite2D" parent="."]
+position = Vector2(524, 517)
+texture = ExtResource("1_cfjg1")
+region_enabled = true
+region_rect = Rect2(482, 462, 82, 112)
+
+[node name="settings" type="Sprite2D" parent="."]
+position = Vector2(656, 519)
+texture = ExtResource("1_cfjg1")
+region_enabled = true
+region_rect = Rect2(613, 481, 82, 77)
+
+[node name="参考" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(576, 324)
+texture = ExtResource("1_cfjg1")
+
+[node name="arrow" type="Sprite2D" parent="."]
+position = Vector2(657, 422)
+texture = ExtResource("1_cfjg1")
+region_enabled = true
+region_rect = Rect2(508, 390, 28, 65)
+
+[node name="UI_Button_Hover_01" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_jmwa6")
+bus = &"SFX"
