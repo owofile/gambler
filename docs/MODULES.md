@@ -440,7 +440,8 @@ gambler/
     ├── ARCHITECTURE.md
     ├── MODULES.md
     ├── EFFECTS_SYSTEM.md          # 特效系统设计文档 (v3.5)
-    └── SAVE_SYSTEM.md             # 存档系统设计文档 (v1.0)
+    ├── SAVE_SYSTEM.md             # 存档系统设计文档 (v1.0)
+    └── BATTLE_SYSTEM.md           # 战斗系统设计文档 (v1.0)
 ```
 
 ---
