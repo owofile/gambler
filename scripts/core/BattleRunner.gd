@@ -57,6 +57,7 @@ func _start_battle() -> void:
 	var snapshot = _card_manager.get_deck_snapshot(all_card_ids)
 	var config = BattleConfig.from_enemy_data(_current_enemy)
 	config.target_wins = target_wins
+	config.enable_card_consumption = false  # 暂时禁用消耗，后续添加补牌机制后启用
 
 	if _battle_flow:
 		_battle_flow.start_battle(snapshot, _current_enemy, config)

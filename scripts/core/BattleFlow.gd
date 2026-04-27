@@ -252,8 +252,12 @@ func _check_battle_end() -> void:
 	elif _scores[1] >= _config.target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 	else:
-		_set_phase(Phase.PLAYER_SELECT)
-		_start_round()
+		if _card_manager and _card_manager.get_deck_size() < _config.cards_per_round:
+			push_warning("[BattleFlow] Player has only %d cards, need %d. Forfeiting." % [_card_manager.get_deck_size(), _config.cards_per_round])
+			_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
+		else:
+			_set_phase(Phase.PLAYER_SELECT)
+			_start_round()
 
 func _trigger_battle_end(result: BattleEnums.EBattleResult) -> void:
 	_cross_turn_state.clear_all()
