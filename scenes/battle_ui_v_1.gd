@@ -270,6 +270,13 @@ func setup_battle(enemy: EnemyData) -> void:
 	_do_refresh_hand()
 	enable_selection(true)
 
+func update_scores(scores: Array) -> void:
+	if scores.size() >= 2:
+		var p0 = scores[0]
+		var p1 = scores[1]
+		_current_score = [p0, p1]
+		print("[BattleUI_v1] Scores updated: %d - %d" % [_current_score[0], _current_score[1]])
+
 func _do_refresh_hand() -> void:
 	if _card_manager:
 		_all_cards = _card_manager.get_all_cards()

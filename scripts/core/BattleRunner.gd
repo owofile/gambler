@@ -1,9 +1,9 @@
 ## Standalone battle orchestrator for BattleUI.
 ##
 ## Responsibility:
-## - Initialize deck if empty
 ## - Handle card selection and battle flow
 ## - Calculate battle results and manage score
+## - Use new BattleFlow for 6-phase state machine
 class_name BattleRunner
 extends Node
 
@@ -19,6 +19,7 @@ var _player_score: int = 0
 var _enemy_score: int = 0
 var _battle_ui: Node = null
 var _battle_in_progress: bool = false
+var _battle_flow: BattleFlow = null
 
 func _ready() -> void:
 	_card_manager = get_node_or_null("/root/CardMgr")
@@ -33,8 +34,16 @@ func setup(battle_ui: Node, enemy: EnemyData) -> void:
 
 	if _battle_ui:
 		_battle_ui.cards_confirmed.connect(_on_cards_confirmed)
-		_battle_ui.setup_battle(enemy)
+
+	_setup_battle_flow()
 	print("[BattleRunner] Setup complete with enemy: %s" % enemy.get_enemy_name())
+
+func _setup_battle_flow() -> void:
+	_battle_flow = BattleFlow.new()
+	_battle_flow.initialize(_card_manager, _data_manager, get_node_or_null("/root/EventBus"))
+	_battle_flow.battle_end.connect(_on_battle_end)
+	_battle_flow.round_info.connect(_on_round_info)
+	add_child(_battle_flow)
 
 func _on_cards_confirmed(selected_ids: Array) -> void:
 	if _battle_in_progress:
@@ -45,54 +54,23 @@ func _on_cards_confirmed(selected_ids: Array) -> void:
 	_battle_in_progress = true
 	print("[BattleRunner] Cards confirmed: %d" % selected_ids.size())
 
-	var player_snapshot = _card_manager.get_deck_snapshot(selected_ids)
-	var result = BattleManager.ProcessSelectedCards(player_snapshot, _current_enemy, _data_manager)
+	if _battle_flow:
+		_battle_flow.confirm_selection(selected_ids)
 
-	var player_total = result.get("player_total", 0)
-	var enemy_total = result.get("enemy_total", 0)
-	var enemy_card_ids = result.get("enemy_card_ids", [])
+func _on_round_info(scores: Array, round_num: int) -> void:
+	if scores.size() >= 2:
+		_player_score = scores[0]
+		_enemy_score = scores[1]
+		print("[BattleRunner] Round %d: Player %d vs Enemy %d" % [round_num, _player_score, _enemy_score])
 
-	print("[BattleRunner] Round result - Player: %d vs Enemy: %d" % [player_total, enemy_total])
-
-	var round_result: int
-	if player_total > enemy_total:
-		round_result = 1
-		_player_score += 1
-		print("[BattleRunner] Player wins round!")
-	elif player_total < enemy_total:
-		round_result = 2
-		_enemy_score += 1
-		print("[BattleRunner] Enemy wins round!")
-	else:
-		round_result = 0
-		print("[BattleRunner] Draw!")
-
-	_show_round_result(player_total, enemy_total, enemy_card_ids, round_result)
-
-	if _player_score >= target_wins:
-		_end_battle(1)
-	elif _enemy_score >= target_wins:
-		_end_battle(2)
-	else:
-		_battle_in_progress = false
-		if _battle_ui:
-			_battle_ui.clear_selection()
-
-func _show_round_result(player_total: int, enemy_total: int, enemy_card_ids: Array, result: int) -> void:
-	var result_text = "平局" if result == 0 else ("玩家胜利" if result == 1 else "敌人胜利")
-	print("[BattleRunner] === 回合结果 ===")
-	print("[BattleRunner] 玩家点数: %d vs 敌人点数: %d" % [player_total, enemy_total])
-	print("[BattleRunner] 敌人出牌: " + str(enemy_card_ids))
-	print("[BattleRunner] 当前比分: %d - %d" % [_player_score, _enemy_score])
-	print("[BattleRunner] ====================")
-
-func _end_battle(result: int) -> void:
+func _on_battle_end(result: BattleEnums.EBattleResult, report: BattleReport) -> void:
 	_battle_in_progress = false
-	print("[BattleRunner] ===== 战斗结束 =====")
-	print("[BattleRunner] 最终比分: %d - %d" % [_player_score, _enemy_score])
-	print("[BattleRunner] 结果: %s" % ("玩家胜利" if result == 1 else "敌人胜利"))
-	print("[BattleRunner] ======================")
+	print("[BattleRunner] Battle ended: %s" % BattleEnums.battle_result_to_string(result))
 
 	if _battle_ui:
 		_battle_ui.enable_selection(false)
-	battle_ended.emit(result, null)
+
+	battle_ended.emit(result, report)
+
+func get_battle_flow() -> BattleFlow:
+	return _battle_flow
