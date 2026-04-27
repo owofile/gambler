@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://d3i2uv6yyr7tt"]
+[gd_scene load_steps=6 format=3 uid="uid://d3i2uv6yyr7tt"]
 
 [ext_resource type="Script" path="res://scenes/battle_ui_v_1.gd" id="1_j6r63"]
 [ext_resource type="Script" path="res://scenes/user_card.gd" id="2_eevc4"]
 [ext_resource type="Texture2D" uid="uid://ddmc1v2qk3cv8" path="res://assets/cards/backgrounds/logo_antver.png" id="3_t4jxw"]
+[ext_resource type="Script" path="res://scenes/game_information.gd" id="4_qav3x"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_myc4j"]
 size = Vector2(51, 233)
@@ -24,7 +25,7 @@ shape = SubResource("RectangleShape2D_myc4j")
 
 [node name="Sprite2D" type="Sprite2D" parent="user_card/user_card_01"]
 position = Vector2(-5.79999, -116.8)
-scale = Vector2(0.0477778, 0.216296)
+scale = Vector2(0.048, 0.217)
 texture = ExtResource("3_t4jxw")
 
 [node name="user_card_02" type="Area2D" parent="user_card"]
@@ -93,6 +94,16 @@ offset_top = 315.0
 offset_right = 559.0
 offset_bottom = 346.0
 text = "出牌"
+
+[node name="GameInformation" type="Node2D" parent="."]
+position = Vector2(50, 50)
+script = ExtResource("4_qav3x")
+
+[node name="round" type="RichTextLabel" parent="GameInformation"]
+offset_left = -49.0
+offset_top = -50.0
+offset_right = 275.0
+offset_bottom = 358.0
 
 [connection signal="card_clicked" from="user_card" to="." method="_on_user_card_card_clicked"]
 [connection signal="card_hovered" from="user_card" to="." method="_on_user_card_card_hovered"]

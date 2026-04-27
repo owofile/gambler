@@ -1,0 +1,160 @@
+[gd_scene load_steps=5 format=3 uid="uid://d1he0p6dmljw2"]
+
+[ext_resource type="Script" path="res://scenes/Thryzhn/Foreground_Scenes/Grass/gd/grass.gd" id="1_4xu8y"]
+[ext_resource type="Texture2D" uid="uid://c6mlgdspb7cc1" path="res://Art/Foreground/TextureAtlas/Foreground_GrassAtlas_v1.png" id="1_hf7cv"]
+[ext_resource type="Shader" path="res://Shader/Grass_Sway.gdshader" id="2_ii1je"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jnv0o"]
+shader = ExtResource("2_ii1je")
+shader_parameter/speed = 1.0
+shader_parameter/frequency = 2.0
+shader_parameter/amplitude = 0.1
+shader_parameter/wind_direction = Vector2(1, 0.5)
+
+[node name="Grass" type="Node2D"]
+script = ExtResource("1_4xu8y")
+
+[node name="grass" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_jnv0o")
+position = Vector2(24, 618)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(45, 79, 34, 61)
+
+[node name="grass2" type="Sprite2D" parent="."]
+position = Vector2(65, 594)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(143, 47, 61, 109)
+
+[node name="grass3" type="Sprite2D" parent="."]
+position = Vector2(129, 583)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(234, 25, 134, 131)
+
+[node name="grass4" type="Sprite2D" parent="."]
+position = Vector2(218, 593)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(413, 46, 81, 110)
+
+[node name="grass5" type="Sprite2D" parent="."]
+position = Vector2(283, 603)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(745, 64, 32, 91)
+
+[node name="grass6" type="Sprite2D" parent="."]
+position = Vector2(335, 602)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(835, 60, 48, 94)
+
+[node name="grass7" type="Sprite2D" parent="."]
+position = Vector2(399, 599)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(917, 56, 75, 100)
+
+[node name="grass8" type="Sprite2D" parent="."]
+position = Vector2(461, 600)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(1030, 57, 35, 98)
+
+[node name="grass9" type="Sprite2D" parent="."]
+position = Vector2(495, 600)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(1090, 57, 45, 97)
+
+[node name="grass10" type="Sprite2D" parent="."]
+position = Vector2(543, 590)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(19, 198, 117, 118)
+
+[node name="grass11" type="Sprite2D" parent="."]
+position = Vector2(601, 598)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(190, 220, 60, 102)
+
+[node name="grass12" type="Sprite2D" parent="."]
+position = Vector2(643, 623)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(291, 268, 22, 53)
+
+[node name="grass13" type="Sprite2D" parent="."]
+position = Vector2(672, 606)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(366, 238, 28, 85)
+
+[node name="grass14" type="Sprite2D" parent="."]
+position = Vector2(719, 606)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(441, 234, 50, 86)
+
+[node name="grass15" type="Sprite2D" parent="."]
+position = Vector2(766, 604)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(602, 235, 42, 89)
+
+[node name="grass16" type="Sprite2D" parent="."]
+position = Vector2(821, 592)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(825, 208, 77, 113)
+
+[node name="grass17" type="Sprite2D" parent="."]
+position = Vector2(860, 597)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(918, 218, 57, 102)
+
+[node name="grass18" type="Sprite2D" parent="."]
+position = Vector2(914, 608)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(997, 238, 52, 81)
+
+[node name="grass19" type="Sprite2D" parent="."]
+position = Vector2(961, 610)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(1080, 240, 51, 77)
+
+[node name="grass20" type="Sprite2D" parent="."]
+position = Vector2(1012, 606)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(974, 344, 44, 84)
+
+[node name="grass21" type="Sprite2D" parent="."]
+position = Vector2(1049, 611)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(1094, 351, 24, 75)
+
+[node name="grass22" type="Sprite2D" parent="."]
+position = Vector2(1072, 611)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(1094, 351, 24, 75)
+
+[node name="grass23" type="Sprite2D" parent="."]
+position = Vector2(1124, 592)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(825, 208, 77, 113)
+
+[node name="grass24" type="Sprite2D" parent="."]
+position = Vector2(1138, 622)
+texture = ExtResource("1_hf7cv")
+region_enabled = true
+region_rect = Rect2(291, 268, 22, 53)

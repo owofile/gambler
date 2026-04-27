@@ -1,6 +1,6 @@
 extends Node2D
 
-signal cards_confirmed(selected_ids: Array[String])
+signal cards_confirmed(selected_ids: Array)
 
 @onready var user_card_01 = $user_card/user_card_01
 @onready var user_card_02 = $user_card/user_card_02
@@ -13,8 +13,8 @@ signal cards_confirmed(selected_ids: Array[String])
 
 @onready var user_card_component = $user_card
 
-var _card_nodes: Array[Area2D] = []
-var _selected_indices: Array[int] = []
+var _card_nodes: Array = []
+var _selected_indices: Array = []
 var _hovered_index: int = -1
 var _selection_enabled: bool = false
 
@@ -32,7 +32,7 @@ var _current_enemy: EnemyData = null
 var _wobble_time: float = 0.0
 var _original_positions: Dictionary = {}
 var _target_wins: int = 3
-var _current_score: Array[int] = [0, 0]
+var _current_score: Array = [0, 0]
 
 var _card_info_panel: Control = null
 var _card_info_label: RichTextLabel = null
@@ -49,6 +49,17 @@ const CARD_INFO_BORDER_WIDTH := 2
 const CARD_INFO_CONTENT_OFFSET_X := 10
 const CARD_INFO_CONTENT_OFFSET_Y := 10
 
+const INITIAL_CARD_IDS: Array = [
+	"card_rusty_sword",
+	"card_friendly_spirit",
+	"card_justice",
+	"card_blood_oath",
+	"card_vengeance",
+	"card_kings_authority"
+]
+
+var _battle_runner: BattleRunner = null
+
 func _ready() -> void:
 	_card_manager = get_node_or_null("/root/CardMgr")
 	_data_manager = get_node_or_null("/root/DataManager")
@@ -62,10 +73,41 @@ func _ready() -> void:
 	playcard_btn.disabled = true
 
 	_connect_user_card_signals()
-	_subscribe_to_events()
+	_setup_battle_runner()
+	_initialize_deck_if_empty()
 	_do_refresh_hand()
 	_create_card_info_panel()
 	print("[BattleUI_v1] Ready")
+
+func _setup_battle_runner() -> void:
+	_battle_runner = BattleRunner.new()
+	add_child(_battle_runner)
+	_battle_runner.battle_ended.connect(_on_battle_ended)
+	print("[BattleUI_v1] BattleRunner initialized")
+
+func _initialize_deck_if_empty() -> void:
+	if _card_manager == null:
+		push_error("[BattleUI_v1] CardMgr not found!")
+		return
+
+	var current_cards = _card_manager.get_all_cards()
+	if current_cards.size() == 0:
+		print("[BattleUI_v1] No cards found, initializing default deck...")
+		for proto_id in INITIAL_CARD_IDS:
+			_card_manager.add_card(proto_id)
+
+	if _data_manager == null:
+		push_error("[BattleUI_v1] DataManager not found!")
+		return
+
+	var default_enemy = _data_manager.enemy_registry.get_enemy("enemy_skeletal_warrior")
+	if default_enemy:
+		print("[BattleUI_v1] Setting up default enemy: %s" % default_enemy.get_enemy_name())
+		_current_enemy = default_enemy
+		if _battle_runner:
+			_battle_runner.target_wins = _target_wins
+			_battle_runner.setup(self, default_enemy)
+		setup_battle(default_enemy)
 
 func _create_card_info_panel() -> void:
 	_card_info_panel = Control.new()
@@ -110,6 +152,9 @@ func _connect_user_card_signals() -> void:
 		user_card_component.card_hovered.connect(_on_card_hovered)
 		user_card_component.card_unhovered.connect(_on_card_unhovered)
 		user_card_component.card_clicked.connect(_on_card_clicked)
+		print("[BattleUI_v1] user_card signals connected")
+	else:
+		push_error("[BattleUI_v1] user_card_component not found!")
 
 func _on_card_hovered(index: int) -> void:
 	if not _selection_enabled:
@@ -293,7 +338,7 @@ func _on_playcard_pressed() -> void:
 	if _selected_indices.is_empty():
 		return
 
-	var selected_ids: Array[String] = []
+	var selected_ids: Array = []
 	for idx in _selected_indices:
 		if idx < _all_cards.size():
 			var card: CardInstance = _all_cards[idx] as CardInstance
@@ -311,7 +356,7 @@ func enable_selection(enabled: bool) -> void:
 		_hovered_index = -1
 		_hide_card_info()
 
-func update_selection(selected_ids: Array[String]) -> void:
+func update_selection(selected_ids: Array) -> void:
 	_selected_indices.clear()
 	for instance_id in selected_ids:
 		for i in range(_all_cards.size()):
@@ -388,7 +433,11 @@ func _on_card_sel_changed(payload) -> void:
 	var selected_ids = payload.get("selected_ids", [])
 	update_selection(selected_ids)
 
-func get_selected_indices() -> Array[int]:
+func _on_battle_ended(result: int, report: BattleReport) -> void:
+	print("[BattleUI_v1] Battle ended with result: %d" % result)
+	enable_selection(false)
+
+func get_selected_indices() -> Array:
 	return _selected_indices.duplicate()
 
 

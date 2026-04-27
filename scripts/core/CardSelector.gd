@@ -10,12 +10,14 @@ extends Node
 const MAX_SELECTION := 3
 const MIN_SELECTION := 1
 
-signal selection_changed(selected_ids: Array[String])
-signal selection_confirmed(selected_ids: Array[String])
+signal selection_changed(selected_ids: Array)
 
+signal selection_confirmed(selected_ids: Array)
+
+var _selected_ids: Array = []
 var _available_cards: Array = []
-var _selected_ids: Array[String] = []
-var _disabled_ids: Array[String] = []
+
+var _disabled_ids: Array = []
 var _locked: bool = false
 var _event_bus: Node = null
 
@@ -119,8 +121,8 @@ func toggle_card(instance_id: String) -> bool:
 ## Gets the currently selected card IDs.
 ##
 ## Returns:
-##   Array[String] - Copy of selected IDs
-func get_selected_ids() -> Array[String]:
+##   Array - Copy of selected IDs
+func get_selected_ids() -> Array:
 	return _selected_ids.duplicate()
 
 ## Gets the number of selected cards.

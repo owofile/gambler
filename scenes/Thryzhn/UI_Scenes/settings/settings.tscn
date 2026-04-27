@@ -1,0 +1,277 @@
+[gd_scene load_steps=5 format=3 uid="uid://dxtwt1kntchfk"]
+
+[ext_resource type="Texture2D" uid="uid://cap1dg075lgjm" path="res://scenes/Thryzhn/MainMenu/texture/settings_ui.png" id="1_1pue2"]
+[ext_resource type="Script" path="res://scenes/Thryzhn/UI_Scenes/settings/gd/settings.gd" id="1_cxmjd"]
+[ext_resource type="AudioStream" uid="uid://tnkt6sbx38u2" path="res://scenes/Thryzhn/Sound/SFX/UI_Button_Hover_01.ogg" id="2_8fxtk"]
+[ext_resource type="AudioStream" uid="uid://dpiqwgd41loh" path="res://scenes/Thryzhn/Sound/SFX/UI_Button_Hover_02.ogg" id="3_8x2y5"]
+
+[node name="Settings" type="CanvasLayer"]
+process_mode = 2
+script = ExtResource("1_cxmjd")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.903598, 0.903598, 0.903598, 0.270588)
+
+[node name="参考" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(576, 324)
+texture = ExtResource("1_1pue2")
+
+[node name="menu" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(266, 322)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(64, 37, 402, 573)
+
+[node name="arrow" type="Sprite2D" parent="."]
+position = Vector2(40, 577)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(8, 60, 54, 31)
+
+[node name="BGM_icon" type="Sprite2D" parent="."]
+position = Vector2(93, 76)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(70, 37, 46, 80)
+
+[node name="BGM_box" type="Sprite2D" parent="."]
+position = Vector2(249, 87)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(206, 154, 228, 34)
+
+[node name="SFX_icon" type="Sprite2D" parent="."]
+position = Vector2(85, 167)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(64, 150, 30, 55)
+
+[node name="SFX_box" type="Sprite2D" parent="."]
+position = Vector2(250, 171)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(206, 154, 228, 34)
+
+[node name="BGM" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(253, 75)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(70, 37, 364, 80)
+
+[node name="SFX" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(251, 175)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(64, 150, 370, 55)
+
+[node name="Effects" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(209, 387)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(79, 355, 260, 65)
+
+[node name="Exit" type="Sprite2D" parent="."]
+position = Vector2(104, 576)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(95, 541, 50, 69)
+
+[node name="BGM_HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(230, 0)
+offset_left = 135.0
+offset_top = 67.0
+offset_right = 365.0
+offset_bottom = 107.0
+
+[node name="BGM_Volumebattery" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(11, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery2" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(27, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery3" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(43, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery4" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(59, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery5" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(74, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery6" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(89.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery7" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(105.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery8" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(121.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery9" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(137.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery10" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(152.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery11" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(167.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery12" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(183.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery13" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(199.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="BGM_Volumebattery14" type="Sprite2D" parent="BGM_HBoxContainer"]
+position = Vector2(214.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(230, 0)
+offset_left = 136.0
+offset_top = 151.0
+offset_right = 366.0
+offset_bottom = 191.0
+
+[node name="SFX_Volumebattery" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(11, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery2" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(27, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery3" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(43, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery4" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(59, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery5" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(74, 20)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery6" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(89.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery7" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(105.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery8" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(121.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery9" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(137.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery10" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(152.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery11" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(167.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery12" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(183.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery13" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(199.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="SFX_Volumebattery14" type="Sprite2D" parent="SFX_HBoxContainer"]
+position = Vector2(214.5, 19.5)
+texture = ExtResource("1_1pue2")
+region_enabled = true
+region_rect = Rect2(465, 74, 15, 25)
+
+[node name="UI_Button_Hover_01" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_8fxtk")
+bus = &"SFX"
+
+[node name="UI_Button_Hover_02" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_8x2y5")
+bus = &"SFX"

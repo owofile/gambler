@@ -1,326 +1,399 @@
 # 模块化架构说明文档
 
-## 概述
+## 更新记录
 
-本文档展示项目中各模块的**独立职责**、**公开接口**、**依赖关系**。
+| 日期 | 版本 | 描述 |
+|------|------|------|
+| 2026-04-27 | v3.5 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划，Buff系统、目标选择、执行顺序） |
+| 2026-04-27 | v3.4 | 运行时错误修复：着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单音量加载 |
+| 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
+| 2026-04-27 | v3.2 | 新增MapManager、QuestManager、示例配置JSON |
+| 2026-04-27 | v3.1 | 新增事件总线增强（幂等+确认机制）、WorldState、SaveManager、NarrativeEngine |
 
 ---
 
-## 模块关系图
+## 系统架构图
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         SceneRunnerV2                            │
-│                    (启动器，协调者)                               │
-│  职责：创建模块、连接信号、启动游戏、Logger 日志                    │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-         ┌───────────────┼───────────────┐
-         │               │               │
-         ▼               ▼               ▼
-┌─────────────────┐ ┌─────────────┐ ┌─────────────┐
-│   BattleUI      │ │ CardManager│ │DataManager │
-│   (界面)         │ │  (卡牌管理) │ │ (注册表)   │
-│                 │ │            │ │            │
-│  - 显示手牌     │ │ AddCard()  │ │card_registry│
-│  - 显示选牌     │ │RemoveCard()│ │enemy_registry│
-│  - 按钮响应     │ │GetAllCards()│ │effect_registry│
-│                 │ │            │ │cost_registry│
-│  直接持有引用    │ │ 直接持有引用 │ │  持有引用  │
-└────────┬────────┘ └─────────────┘ └─────────────┘
-         │
-         │ emit_signal("cards_confirmed")
-         │ 直接信号连接
-         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    BattleFlowManager (状态机)                      │
-│  职责：管理战斗流程状态、发布 Flow 事件、触发动画、完成战斗           │
-│  状态：IDLE → PLAYER_SELECTING → PLAYER_ANIMATING → ENEMY_ANIMATING│
-│       → COMPARE_ANIMATING → ROUND_END_ANIMATING → (循环或BATTLE_END)│
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    BattleManager (核心战斗逻辑)                    │
-│  职责：执行战斗计算（特效、代价）、返回结果                            │
-│  方法：ProcessSelectedCards() → 代价累积到 BattleReport              │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Autoload Layer                                  │
+│  DataManager → CardMgr → EventBus → GameState → WorldState → SaveManager    │
+│  → MapManager → QuestManager → SceneChanger                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           World Context (世界上下文)                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │ WorldState  │  │ SaveManager │  │ MapManager  │  │ QuestManager│        │
+│  │  键值状态   │  │   存档管理   │  │   地图管理   │  │   任务系统   │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          Narrative Context (叙事上下文)                        │
+│  ┌───────────────────┐        ┌───────────────────┐                         │
+│  │  NarrativeEngine  │───────▶│  DialogueSystem   │                         │
+│  │   (逻辑/规则引擎)  │        │   (Orchestrator)  │                         │
+│  └───────────────────┘        └─────────┬─────────┘                         │
+│                                          │                                   │
+│                              ┌───────────┴───────────┐                       │
+│                              ▼                       ▼                       │
+│                      ┌─────────────┐        ┌─────────────┐                │
+│                      │DialogueBox  │        │  ItemBar    │                │
+│                      │  (视图)     │        │  (选项UI)   │                │
+│                      └─────────────┘        └─────────────┘                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          Battle Context (战斗上下文)                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │BattleManager│  │BattleFlow   │  │CardSelector │  │  BattleUI   │        │
+│  │  (核心逻辑)  │  │  Manager    │  │  (选牌)     │  │  (界面)     │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Card Context (卡牌上下文)                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                          │
+│  │ CardManager │  │CardInstance │  │  Registry   │                          │
+│  │  (仓库管理)  │  │  (卡牌实例)  │  │  (原型注册)  │                          │
+│  └─────────────┘  └─────────────┘  └─────────────┘                          │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 模块职责表
+## 1. 战斗上下文 (Battle Context)
 
-### 1. SceneRunnerV2 (协调者)
+**核心文件**:
+- `scripts/core/BattleManager.gd` - 战斗核心逻辑
+- `scripts/core/BattleFlowManager.gd` - 战斗状态机
+- `scripts/core/CardSelector.gd` - 选牌管理
+- `scripts/ui/BattleUI.gd` / `scenes/battle_ui_v_1.gd` - 战斗界面
 
-| 项目 | 说明 |
-|------|------|
-| 职责 | 创建所有模块，连接信号，启动游戏，日志记录 |
-| 创建的节点 | BattleUI, BattleFlowManager, CardSelector, AnimationController, Logger |
-| 连接的信号 | BattleUI.cards_confirmed, BattleFlowManager.state_changed, BattleFlowManager.battle_end, BattleFlowManager.round_can_select |
-| 调用的方法 | CardManager, BattleFlowManager, BattleManager.ProcessSelectedCards |
-
-### 2. BattleFlowManager (状态机)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | 管理战斗流程状态转换，发布 Flow 事件，累积代价 |
-| 信号 | state_changed(state), battle_end(report), round_can_select(scores) |
-| 状态 | IDLE, PLAYER_SELECTING, PLAYER_ANIMATING, ENEMY_ANIMATING, COMPARE_ANIMATING, ROUND_END_ANIMATING, BATTLE_END |
-| 调用的方法 | BattleManager.ProcessSelectedCards(), on_animation_complete() |
-
-### 3. BattleManager (核心逻辑)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | 执行战斗计算（特效、代价），返回处理结果 |
-| 公开方法 | `ProcessSelectedCards(snapshot, enemy, dataManager) → Dictionary` |
-| 依赖 | DataManager (获取注册表) |
-
-### 4. BattleUI (界面)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | 显示手牌、处理选牌UI、显示战斗结果 |
-| 发送的信号 | `cards_confirmed(Array[String])` |
-| 接收的事件 | Flow_BattleStart, Flow_PlayerSelecting, Flow_BattleEnd 等 |
-
-### 4.1 BattleUI_v1 (界面 - Node2D架构)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | Node2D架构的卡牌UI，卡片动画与交互 |
-| 主文件 | `scenes/battle_ui_v_1.gd` |
-| 组件文件 | `scenes/user_card.gd` (卡牌容器组件) |
-| 发送的信号 | `cards_confirmed(Array[String])` |
-| 接收的事件 | Flow_BattleStart, Flow_PlayerSelecting, Flow_RoundEnd, Flow_BattleEnd 等 |
-| 特性 | 鼠标悬停动画、选中高亮、出牌选择 |
-
-### 4.2 CardMgr (Autoload)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | 管理玩家卡牌实例（Add/Remove/GetAll/GetSnapshot） |
-| 公开方法 | AddCard(prototypeId) → CardInstance, RemoveCard(instanceId) → bool, GetAllCards() → Array, GetDeckSnapshot(ids) → DeckSnapshot, GetDeckSize() → int |
-| 访问路径 | `/root/CardMgr` |
-
-### 5. BattleManager (核心逻辑)
-
-| 项目 | 说明 |
-|------|------|
-| 职责 | 执行战斗计算，返回BattleReport |
-| 公开方法 | `StartBattle(playerDeck, enemy, dataManager) → BattleReport` |
-| 依赖 | DataManager (获取注册表) |
-| **不依赖** | BattleUI, SceneRunner, CardSelector |
-
----
-
-## 信号 vs 事件（重要区别）
-
-### 信号 (Signal)
-
-**信号是 GDScript 节点的自有特性**，通过 `emit_signal()` 发送：
-
+**对外接口**:
 ```gdscript
-# BattleUI.gd
-signal cards_confirmed(selected_ids: Array[String])
-
-func _on_button_pressed():
-    emit_signal("cards_confirmed", selected_ids)
-```
-
-**连接信号**（在持有节点的脚本中）：
-```gdscript
-# SceneRunner.gd
-_battle_ui.cards_confirmed.connect(_on_confirmed)
-```
-
-### 事件 (EventBus)
-
-EventBus 是全局消息通道，**任何模块可以发布/订阅**：
-
-```gdscript
-# 发布
-EventBus.Publish("BattleEnded", payload)
-
-# 订阅
-EventBus.Subscribe("BattleEnded", _on_battle_ended)
-```
-
-### 当前项目的信号和事件
-
-| 发送者 | 方式 | 接收者 | 说明 |
-|--------|------|--------|------|
-| BattleUI | `emit_signal("cards_confirmed")` | SceneRunner | 选牌确认，**直接信号连接** |
-| EventBus | `Publish()` | BattleUI 等 | 全局广播 |
-
----
-
-## 调用链 vs 信号流
-
-### 调用链（方法调用）
-
-```
-SceneRunner
-    │
-    ├── CardManager.AddCard() ──→ 创建卡牌实例
-    │
-    ├── BattleManager.StartBattle() ──→ 战斗计算
-    │
-    └── CardManager.RemoveCard() ──→ 移除卡牌
-```
-
-### 信号流（事件通知）
-
-```
-BattleUI
-    │
-    └── emit_signal("cards_confirmed", ids) ──→ SceneRunner（通过信号连接）
-```
-
-### 事件流（EventBus广播）
-
-```
-BattleManager/SceneRunner
-    │
-    └── EventBus.Publish("BattleEnded", payload) ──→ 所有订阅者
+BattleManager.StartBattle(playerDeck, enemy) -> BattleReport
+BattleFlowManager.start_battle()
+BattleFlowManager.confirm_selection()
 ```
 
 ---
 
-## 模块依赖图
+## 2. 卡牌上下文 (Card Context)
 
-```
-                    ┌──────────────┐
-                    │ DataManager  │
-                    │  (Autoload) │
-                    └──────┬───────┘
-                           │
-           ┌───────────────┼───────────────┐
-           │               │               │
-           ▼               ▼               ▼
-      ┌────────────┐   ┌───────────┐   ┌────────────┐
-      │  CardMgr   │   │  BattleUI │   │BattleManager│
-      │ (Autoload) │   │           │   │            │
-      └─────┬──────┘   └─────┬─────┘   └────────────┘
-            │             │
-            │             │
-            │        ┌────┴────┐
-            │        │SceneRunner│
-            │        └────┬────┘
-            │             │
-            └─────────────┘
+**核心文件**:
+- `scripts/core/CardManager.gd` - 卡牌管理
+- `scripts/data/CardInstance.gd` - 卡牌实例
+- `scripts/data/CardPrototypeRegistry.gd` - 原型注册表
 
-           get_node("/root/DataManager")
-           get_node("/root/CardMgr")
+**对外接口**:
+```gdscript
+CardMgr.add_card(prototype_id) -> CardInstance
+CardMgr.remove_card(instance_id) -> bool
+CardMgr.get_all_cards() -> Array
+CardMgr.get_deck_snapshot(ids) -> DeckSnapshot
+CardMgr.clear_all_cards()  # 存档用
 ```
 
 ---
 
-## 常见错误对照表
+## 3. 叙事上下文 (Narrative Context) v3.3
 
-| 错误现象 | 原因 | 解决方法 |
-|---------|------|---------|
-| 信号不触发 | 信号和事件混淆 | 确认是 `emit_signal` 还是 `EventBus.Publish` |
-| get_node 失败 | 节点路径错误或未加载 | 确认节点存在且路径正确 |
-| 空引用 | 引用未初始化 | 在 `_ready()` 中确认已赋值 |
-| 选牌无法点击 | `_selection_enabled = false` | 调用 `enable_selection(true)` |
-| 手牌不显示 | `refresh_hand()` 未调用 | 确认在数据更新后调用 |
+**核心文件**:
+- `scripts/dialogue/NarrativeEngine.gd` - 对话树逻辑/规则引擎
+- `scripts/dialogue/DialogueSystem.gd` - 统一调度器 (Orchestrator)
+- `scenes/Thryzhn/UI_Scenes/dialogue/dialogue.tscn` - UI组件
+
+**MVC架构**:
+
+| 角色 | 组件 | 职责 |
+|------|------|------|
+| Model | NarrativeEngine | 对话树解析、条件评估、效应执行 |
+| View | DialogueBoxParent, ItemBar | 文字显示、选项展示 |
+| Controller | DialogueSystem | 协调Model和View，管理游戏状态 |
+
+**使用方式**:
+```gdscript
+# 简单对话
+EventBus.publish("StartDialogue", {"lines": ["Hello!", "Bye!"]})
+
+# 树形对话
+EventBus.publish("StartDialogueTree", {
+    "path": "res://dialogues/merchant.json",
+    "start_node": "start"
+})
+
+# 前进/确认
+DialogueSystem.advance()
+DialogueSystem.select_option(index)
+```
+
+**条件类型**: HasFlag, HasItem, DeckSizeGE, NpcAlive, Comparison
+
+**效应类型**: SetFlag, GiveItem, RemoveItem, StartBattle, TriggerDialogue, KillNpc, GiveGold, TakeGold
 
 ---
 
-## 接口速查
+## 4. 世界上下文 (World Context) v3.2
 
-### SceneRunner 接口
+**核心文件**:
+- `scripts/world/WorldState.gd` - 键值状态
+- `scripts/world/SaveManager.gd` - 存档管理
+- `scripts/world/MapManager.gd` - 地图/区域管理
+- `scripts/world/QuestManager.gd` - 任务管理
 
+### WorldState
 ```gdscript
-# 创建模块
-_setup_ui()      # 加载 BattleUI 场景
-_setup_modules()  # 创建 CardSelector 等
-
-# 连接信号（重要！）
-_battle_ui.cards_confirmed.connect(_on_confirmed)  # 直接信号连接
-# 注意：不是 EventBus.Subscribe
-
-# 启动游戏
-start_game()
-
-# 处理确认
-_on_battle_ui_cards_confirmed(selected_ids: Array[String])
+WorldState.set_flag(key, value)
+WorldState.get_flag(key, default)
+WorldState.has_flag(key)
 ```
 
-### BattleUI 接口
-
+### SaveManager
 ```gdscript
-# 设置
-setup_battle(enemy: EnemyData)    # 初始化，显示敌人信息
-enable_selection(enabled: bool)       # 启用/禁用选牌
-refresh_hand()                       # 刷新手牌显示
-
-# 接收信号
-cards_confirmed(selected_ids)         # 发送信号，SceneRunner 连接此信号
-
-# 事件订阅（EventBus）
-Flow_BattleStart, Flow_PlayerSelecting, Flow_BattleEnd 等
+SaveManager.save_game()
+SaveManager.load_game() -> bool
+SaveManager.auto_save() -> bool
+SaveManager.has_save() -> bool
 ```
 
-### CardMgr Interface (Autoload)
-
+### MapManager
 ```gdscript
-# 获取实例
-CardMgr.add_card(prototypeId: String) → CardInstance
-CardMgr.remove_card(instanceId: String) → bool
-CardMgr.get_all_cards() → Array
-CardMgr.get_deck_snapshot(ids: Array) → DeckSnapshot
-CardMgr.get_deck_size() → int
-
-# 访问方式
-get_node("/root/CardMgr").add_card(...)
+MapManager.load_zone_config()
+MapManager.load_zone(zone_id) -> bool
+MapManager.teleport_to(tp_id) -> bool
+MapManager.is_zone_unlocked(zone_id) -> bool
+MapManager.get_current_zone() -> String
 ```
 
-### BattleManager 接口
-
+### QuestManager
 ```gdscript
-# 单一入口
-BattleManager.StartBattle(snapshot, enemy, dataManager) → BattleReport
-
-# 不依赖 UI 或 SceneRunner
-# 只接收 DeckSnapshot 和 EnemyData，返回 BattleReport
-```
-
-### EventBus 接口
-
-```gdscript
-EventBus.Subscribe(eventType: String, handler: Callable)
-EventBus.Publish(eventType: String, payload)
-EventBus.Unsubscribe(eventType: String, handler: Callable)
+QuestManager.load_quest_config()
+QuestManager.start_quest(quest_id) -> bool
+QuestManager.get_quest_info(quest_id) -> Dictionary
+QuestManager.get_active_quests() -> Array
+# 自动监听BattleEnded, CardAcquired, WorldFlagChanged等事件更新进度
 ```
 
 ---
 
-## 文件位置
+## 5. 事件总线 (EventBus)
 
-| 模块 | 文件 |
-|------|------|
-| SceneRunner | `scripts/core/SceneRunnerV2.gd` |
-| BattleUI | `scripts/ui/BattleUI.gd` |
-| BattleUI_v1 | `scenes/battle_ui_v_1.gd` + `scenes/user_card.gd` |
-| CardManager | `scripts/core/CardManager.gd` |
-| BattleManager | `scripts/core/BattleManager.gd` |
-| EventBus | `scripts/core/EventBus.gd` |
-| DataManager | `scripts/autoload/DataManager.gd` |
-| CardSelector | `scripts/core/CardSelector.gd` |
-| AnimationController | `scripts/core/AnimationController.gd` |
-| BattleFlowManager | `scripts/core/BattleFlowManager.gd` |
+### 基础API (向后兼容)
+```gdscript
+EventBus.subscribe(event_type, handler)
+EventBus.publish(event_type, payload)
+```
+
+### 幂等性 (v3.1)
+```gdscript
+# 相同event_id的事件不会重复处理
+EventBus.publish("BattleEnded", {"event_id": "unique_123", ...})
+```
+
+### 命令+确认模式 (v3.1)
+```gdscript
+# 发布者等待所有订阅者确认
+var success = EventBus.publish_with_ack("BattleEnded", payload, 5000)
+
+# 订阅者必须调用ack()
+EventBus.subscribe_with_ack("BattleEnded", _handler)
+func _handler(payload):
+    EventBus.ack(payload["event_id"])
+```
 
 ---
 
-## 下一步
+## 6. 标准化事件列表
 
-如果需要修改或排查问题：
+| 事件名 | 类型 | 触发时机 |
+|--------|------|---------|
+| `BattleEnded` | Ack | 战斗结算完成 |
+| `CardAcquired` | Basic | 获得卡牌 |
+| `CardLost` | Basic | 失去卡牌 |
+| `WorldFlagChanged` | Basic | Flag变化 |
+| `DialogueNodeShown` | Basic | 显示对话节点 |
+| `DialogueOptionSelected` | Basic | 选择对话选项 |
+| `DialogueEnded` | Basic | 对话结束 |
+| `BattleRequested` | Basic | 请求战斗 |
+| `GameModeChanged` | Basic | 模式切换 |
+| `QuestStarted` | Basic | 任务开始 |
+| `QuestCompleted` | Basic | 任务完成 |
+| `ZoneLoaded` | Basic | 区域加载 |
+| `ZoneUnlocked` | Basic | 区域解锁 |
+| `GameSaved` | Basic | 存档完成 |
+| `GameLoaded` | Basic | 读档完成 |
 
-1. **确认模块职责** - 查看上方"模块职责表"
-2. **确认调用方式** - 信号用 `emit_signal`，事件用 `EventBus.Publish`
-3. **确认依赖关系** - 查看"模块依赖图"
+---
 
-不要让信号和事件混淆！
+## 7. 状态持久化
+
+### 存档结构
+```json
+{
+  "version": 1,
+  "timestamp": 1234567890,
+  "current_zone": "zone_village",
+  "player_position": {"x": 100, "y": 200},
+  "world_state": { "flag1": true, "flag2": 3 },
+  "card_instances": [
+    {"prototype_id": "card_sword", "delta_value": 0, "bind_status": 0}
+  ],
+  "active_quests": ["quest_1"],
+  "completed_quests": ["quest_0"]
+}
+```
+
+### 加载顺序
+```
+SaveManager.load_game()
+    ↓
+WorldState.load_save_data()
+    ↓
+CardMgr.clear_all_cards() → CardMgr.add_card()
+    ↓
+QuestManager.load_save_data()
+    ↓
+MapManager.load_save_data()
+```
+
+---
+
+## 8. Autoload 顺序与依赖
+
+```
+DataManager (无依赖)
+    ↓
+CardMgr (依赖DataManager)
+    ↓
+EventBus (无依赖)
+    ↓
+GameState (无依赖)
+    ↓
+WorldState (无依赖)
+    ↓
+SaveManager (依赖WorldState, CardMgr)
+    ↓
+MapManager (依赖WorldState)
+    ↓
+QuestManager (依赖WorldState, CardMgr, EventBus)
+    ↓
+SceneChanger (无依赖)
+```
+
+---
+
+## 9. 目录结构 (v3.5)
+
+```
+gambler/
+├── scripts/
+│   ├── core/
+│   │   ├── BattleManager.gd
+│   │   ├── BattleFlowManager.gd
+│   │   ├── CardManager.gd
+│   │   ├── CardSelector.gd
+│   │   ├── EventBus.gd
+│   │   ├── GameStateManager.gd
+│   │   ├── Logger.gd
+│   │   └── SceneRunnerV2.gd
+│   ├── data/
+│   │   ├── BattleReport.gd
+│   │   ├── CardData.gd
+│   │   ├── CardInstance.gd
+│   │   ├── CardSnapshot.gd
+│   │   ├── DeckSnapshot.gd
+│   │   ├── EffectContext.gd
+│   │   ├── CostContext.gd
+│   │   └── ...
+│   ├── effects/                   # 特效系统 (v3.5 设计文档)
+│   │   ├── IEffectHandler.gd     # 特效接口（核心契约）
+│   │   ├── FixedBonusEffect.gd   # 固定加成
+│   │   └── RuleReversalEffect.gd # 规则反转
+│   ├── costs/                     # 代价系统
+│   │   ├── ICostHandler.gd
+│   │   ├── NextTurnUnusableCost.gd
+│   │   └── SelfDestroyCost.gd
+│   ├── dialogue/
+│   │   ├── NarrativeEngine.gd    # Model
+│   │   ├── DialogueSystem.gd     # Controller
+│   │   └── DialogueUI.gd
+│   ├── world/
+│   │   ├── WorldState.gd
+│   │   ├── SaveManager.gd
+│   │   ├── MapManager.gd
+│   │   ├── QuestManager.gd
+│   │   └── WorldManager.gd
+│   ├── player/
+│   │   ├── PlayerController.gd
+│   │   └── PlayerStateMachine.gd
+│   └── autoload/
+│       ├── DataManager.gd
+│       ├── CardMgr.gd
+│       └── EventBus.gd
+├── scenes/
+│   ├── Thryzhn/
+│   │   ├── MainMenu/
+│   │   ├── UI_Scenes/
+│   │   │   ├── dialogue/
+│   │   │   └── settings/
+│   │   ├── Player/
+│   │   └── SceneChanger/
+│   ├── BattleUI_v1.tscn
+│   └── Battle_UI_v1.tscn
+├── resources/
+│   ├── card_prototypes.json       # 卡牌原型配置
+│   └── enemy_registry.json        # 敌人配置
+├── dialogues/                     # 对话树JSON
+│   └── merchant.json
+├── config/                        # 游戏配置
+│   ├── zones.json
+│   └── quests.json
+├── Shader/
+│   └── Grass_Sway.gdshader
+└── docs/
+    ├── ARCHITECTURE.md
+    ├── MODULES.md
+    └── EFFECTS_SYSTEM.md          # 特效系统设计文档 (v3.5)
+```
+
+---
+
+## 10. 设计原则 (OOP & 模块化)
+
+### 单一职责原则 (SRP)
+- 每个类只做一件事
+- NarrativeEngine 不直接操作UI，只发布事件
+- DialogueSystem 作为Orchestrator协调各组件
+
+### 依赖倒置原则 (DIP)
+- 上层模块依赖抽象（事件接口）
+- 不直接依赖具体实现
+
+### 迪米特法则 (LoD)
+- 模块只与直接朋友通信
+- NarrativeEngine 只知道 DialogueSystem
+- DialogueSystem 只知道 NarrativeEngine + UI组件
+
+### 聚合根保护
+- WorldState 是 WorldContext 的聚合根
+- 外部只能通过 WorldState 访问/修改状态
+
+### 事件驱动解耦
+- 模块间通过 EventBus 异步通信
+- 新增功能只需添加事件订阅者
+
+---
+
+## 11. 待办事项
+
+- [ ] 自动存档触发器 - 区域切换时自动存档
+- [ ] ChapterManager - 章节/进度系统
+- [ ] NPC系统 - NPC状态、位置、交互
+- [ ] 商店系统 - 基于对话树的商品购买
+- [ ] UI响应式布局 - 适配不同分辨率

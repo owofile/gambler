@@ -1,6 +1,6 @@
 extends Node
 
-var _initial_cards: Array[String] = [
+var _initial_cards: Array = [
 	"card_rusty_sword",
 	"card_friendly_spirit",
 	"card_justice",
@@ -56,7 +56,7 @@ func _start_game() -> void:
 		return val_a > val_b
 	)
 
-	var selected_ids: Array[String] = []
+	var selected_ids: Array = []
 	var top_count := mini(3, sorted_cards.size())
 	for i in range(top_count):
 		var c = sorted_cards[i]
@@ -101,9 +101,9 @@ func _start_game() -> void:
 
 func _setup_event_listeners() -> void:
 	var event_bus = _get_event_bus()
-	event_bus.Subscribe("BattleEnded", _on_battle_ended)
-	event_bus.Subscribe("CardAcquired", _on_card_acquired)
-	event_bus.Subscribe("CardLost", _on_card_lost)
+	event_bus.subscribe("BattleEnded", _on_battle_ended)
+	event_bus.subscribe("CardAcquired", _on_card_acquired)
+	event_bus.subscribe("CardLost", _on_card_lost)
 
 func _on_battle_ended(payload: BattleEndedPayload) -> void:
 	print("[GameRunner] [Event] BattleEnded received - Result: %s" % (

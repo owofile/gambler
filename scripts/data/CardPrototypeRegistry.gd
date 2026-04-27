@@ -39,7 +39,7 @@ func _parse_prototypes(data: Dictionary) -> void:
 		var proto_dict: Dictionary = data[key]
 		var card_class: CardData.CardClass = CardData.string_to_class_name(proto_dict.get("card_class", "Artifact"))
 		var effects: Variant = proto_dict.get("effect_ids", [])
-		var effects_str: Array[String] = []
+		var effects_str: Array = []
 		if effects is Array:
 			for e in effects:
 				effects_str.append(str(e))
@@ -54,7 +54,7 @@ func _parse_prototypes(data: Dictionary) -> void:
 		_prototypes[key] = proto
 
 func _setup_default_prototypes() -> void:
-	var empty_effects: Array[String] = []
+	var empty_effects: Array = []
 	_prototypes["card_rusty_sword"] = CardData.new("card_rusty_sword", CardData.CardClass.Artifact, 7, empty_effects, "", true)
 	_prototypes["card_ancient_shield"] = CardData.new("card_ancient_shield", CardData.CardClass.Artifact, 5, empty_effects, "", true)
 	_prototypes["card_cursed_amulet"] = CardData.new("card_cursed_amulet", CardData.CardClass.Artifact, 9, empty_effects, "", false)

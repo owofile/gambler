@@ -10,7 +10,7 @@
 class_name SceneRunnerV2
 extends Node
 
-const INITIAL_CARD_IDS: Array[String] = [
+const INITIAL_CARD_IDS: Array = [
 	"card_rusty_sword",
 	"card_friendly_spirit",
 	"card_justice",
@@ -82,7 +82,7 @@ func _start_game() -> void:
 		_logger.error("Failed to load enemy!")
 
 func _start_battle_flow() -> void:
-	var all_instance_ids: Array[String] = []
+	var all_instance_ids: Array = []
 	for c in _all_cards:
 		var card: CardInstance = c as CardInstance
 		if card:
@@ -92,11 +92,11 @@ func _start_battle_flow() -> void:
 	_logger.info("Starting battle flow")
 	_battle_flow.start_battle(snapshot, _current_enemy)
 
-func _on_selection_changed(selected_ids: Array[String]) -> void:
+func _on_selection_changed(selected_ids: Array) -> void:
 	if _battle_ui:
 		_battle_ui.update_selection(selected_ids)
 
-func _on_cards_confirmed(selected_ids: Array[String]) -> void:
+func _on_cards_confirmed(selected_ids: Array) -> void:
 	if _battle_in_progress:
 		_logger.warn("Battle in progress, ignoring confirmation")
 		return

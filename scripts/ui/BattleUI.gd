@@ -6,7 +6,7 @@
 class_name BattleUI
 extends Control
 
-signal cards_confirmed(selected_ids: Array[String])
+signal cards_confirmed(selected_ids: Array)
 
 @onready var _hand_list: VBoxContainer = $MainArea/HandPanel/HandList
 @onready var _selected_container: VBoxContainer = $MainArea/BattlePanel/SelectedCards
@@ -22,10 +22,10 @@ signal cards_confirmed(selected_ids: Array[String])
 const MAX_SELECT := 3
 const MAX_LOG_LINES := 50
 
-var _selected_indices: Array[int] = []
+var _selected_indices: Array = []
 var _all_cards: Array = []
 var _current_enemy: EnemyData = null
-var _current_score: Array[int] = [0, 0]
+var _current_score: Array = [0, 0]
 var _round_number: int = 0
 var _target_wins: int = 3
 var _selection_enabled: bool = false
@@ -167,7 +167,7 @@ func _on_confirm_pressed() -> void:
 	if not _selection_enabled or _selected_indices.is_empty():
 		return
 
-	var selected_ids: Array[String] = []
+	var selected_ids: Array = []
 	for idx in _selected_indices:
 		if idx >= 0 and idx < _all_cards.size():
 			var c = _all_cards[idx]
@@ -181,8 +181,8 @@ func _on_confirm_pressed() -> void:
 ## Updates selection display from external source.
 ##
 ## Params:
-##   selected_ids: Array[String] - Selected card instance IDs
-func update_selection(selected_ids: Array[String]) -> void:
+##   selected_ids: Array - Selected card instance IDs
+func update_selection(selected_ids: Array) -> void:
 	_selected_indices.clear()
 	for instance_id in selected_ids:
 		if _all_cards_by_id.has(instance_id):

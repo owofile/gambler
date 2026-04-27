@@ -1,0 +1,76 @@
+[gd_scene load_steps=13 format=3 uid="uid://untisb15hvth"]
+
+[ext_resource type="PackedScene" uid="uid://d1he0p6dmljw2" path="res://scenes/Thryzhn/Foreground_Scenes/Grass/Grass.tscn" id="1_xgine"]
+[ext_resource type="Script" path="res://scenes/Thryzhn/TestScenes/cave/cave/gd/cave.gd" id="1_y7spg"]
+[ext_resource type="Texture2D" uid="uid://d30yywe21sltt" path="res://scenes/Thryzhn/TestScenes/cave/texture/draft.png" id="2_wra48"]
+[ext_resource type="PackedScene" uid="uid://p3d7nkl2uubt" path="res://scenes/Thryzhn/Player/test/PlayerTest_example.tscn" id="3_qo6tk"]
+[ext_resource type="Texture2D" uid="uid://bxihc4c4bqny0" path="res://scenes/Thryzhn/Art/Foreground/Foreground_stone_01.png" id="4_581wj"]
+[ext_resource type="PackedScene" uid="uid://libjee2g4llp" path="res://scenes/Thryzhn/TestScenes/assets/door/door.tscn" id="6_gw4tq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k871s"]
+size = Vector2(1152, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f02ww"]
+size = Vector2(20, 650)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4g3tl"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_otxmn"]
+size = Vector2(1152, 20)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_q6up4"]
+a = Vector2(419, 8)
+b = Vector2(-418, 7)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_hubko"]
+a = Vector2(213, -68)
+b = Vector2(-102, 207)
+
+[node name="Cave" type="Node2D"]
+script = ExtResource("1_y7spg")
+
+[node name="draft" type="Sprite2D" parent="."]
+position = Vector2(576, 324)
+texture = ExtResource("2_wra48")
+
+[node name="Door" parent="." instance=ExtResource("6_gw4tq")]
+position = Vector2(790, 367)
+
+[node name="PlayerTestExample" parent="." instance=ExtResource("3_qo6tk")]
+position = Vector2(419, 512)
+scale = Vector2(0.26, 0.26)
+
+[node name="Grass" parent="." instance=ExtResource("1_xgine")]
+
+[node name="ForegroundStone01" type="Sprite2D" parent="."]
+position = Vector2(576, 324)
+texture = ExtResource("4_581wj")
+
+[node name="Airwall" type="StaticBody2D" parent="."]
+
+[node name="BottomBoundWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(576, 658)
+shape = SubResource("RectangleShape2D_k871s")
+
+[node name="RightBoundWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(1162, 325)
+shape = SubResource("RectangleShape2D_f02ww")
+
+[node name="LeftBoundWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(-10, 324)
+shape = SubResource("RectangleShape2D_4g3tl")
+
+[node name="TopBoundWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(576, -10)
+shape = SubResource("RectangleShape2D_otxmn")
+
+[node name="XPosAirWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(733, 366)
+shape = SubResource("SegmentShape2D_q6up4")
+
+[node name="YNegAirWall" type="CollisionShape2D" parent="Airwall"]
+position = Vector2(103, 440)
+shape = SubResource("SegmentShape2D_hubko")
+
+[connection signal="area_entered" from="Door" to="." method="_on_door_area_entered"]

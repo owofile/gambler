@@ -1,0 +1,56 @@
+{
+  "nodes": {
+    "start": {
+      "speaker": "Merchant",
+      "text": "Welcome, traveler! Looking for some cards to add to your deck?",
+      "options": [
+        {
+          "text": "Yes, show me what you have.",
+          "next": "show_cards"
+        },
+        {
+          "text": "Just passing by.",
+          "next": "farewell"
+        },
+        {
+          "text": "[Special] Do you know about the old ruin?",
+          "conditions": [
+            { "type": "HasFlag", "params": { "flag": "met_archaeologist", "value": true } }
+          ],
+          "next": "ruins_info"
+        }
+      ]
+    },
+    "show_cards": {
+      "speaker": "Merchant",
+      "text": "I have some fine cards. This Rusty Sword should serve you well in battle.",
+      "effects": [
+        { "type": "GiveItem", "params": { "prototype_id": "card_rusty_sword" } }
+      ],
+      "options": [
+        {
+          "text": "Thanks!",
+          "next": "farewell"
+        }
+      ]
+    },
+    "farewell": {
+      "speaker": "Merchant",
+      "text": "Safe travels! Come back anytime.",
+      "options": []
+    },
+    "ruins_info": {
+      "speaker": "Merchant",
+      "text": "The old ruin? I heard there's a treasure deep inside. But beware the Shadow Assassin!",
+      "effects": [
+        { "type": "SetFlag", "params": { "flag": "knows_ruin_secret", "value": true } }
+      ],
+      "options": [
+        {
+          "text": "I'll check it out.",
+          "next": "farewell"
+        }
+      ]
+    }
+  }
+}
