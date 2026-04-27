@@ -12,8 +12,20 @@ Godot 4.3 卡牌对战游戏
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - 架构文档
 - [docs/MODULES.md](docs/MODULES.md) - 模块说明
+- [docs/EFFECTS_SYSTEM.md](docs/EFFECTS_SYSTEM.md) - 特效系统设计文档
 - [docs/TECH_REFERENCE.md](docs/TECH_REFERENCE.md) - 技术参考
 - [docs/BATTLE_FLOW_DESIGN.md](docs/BATTLE_FLOW_DESIGN.md) - 战斗流程设计
+
+## 代码统计
+
+| 语言 | 文件 | 行数 |
+|------|------|------|
+| GDScript | 76 | 7,473 |
+| TSCN | 16 | 2,469 |
+| JSON | 5 | 394 |
+| **合计** | **97** | **10,336** |
+
+统计工具: `tools/cloc_stats.py`
 
 ## 版本
 
