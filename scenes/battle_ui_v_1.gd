@@ -93,6 +93,8 @@ func _initialize_deck_if_empty() -> void:
 			_battle_runner.target_wins = _target_wins
 			_battle_runner.setup(self, default_enemy)
 		setup_battle(default_enemy)
+	else:
+		push_error("[BattleUI_v1] Default enemy not found in registry!")
 
 func _create_card_info_panel() -> void:
 	_card_info_panel = Control.new()

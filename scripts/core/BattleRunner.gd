@@ -96,5 +96,8 @@ func _on_battle_end(result: BattleEnums.EBattleResult, report: BattleReport) -> 
 
 	battle_ended.emit(result, report)
 
+	print("[BattleRunner] Returning to exploration...")
+	get_tree().change_scene_to_file("res://scenes/Thryzhn/TestScenes/cave/cave/cave.tscn")
+
 func get_battle_flow() -> BattleFlow:
 	return _battle_flow
