@@ -1,0 +1,91 @@
+{
+  "quests": {
+    "quest_merchant_intro": {
+      "name": "The Merchant's Request",
+      "description": "A friendly merchant has some cards to offer.",
+      "category": "intro",
+      "previous_quests": [],
+      "objectives": [
+        {
+          "id": "obj_talk_merchant",
+          "type": "TalkToNpc",
+          "params": { "npc_id": "merchant" },
+          "description": "Talk to the merchant"
+        }
+      ],
+      "rewards": [
+        { "type": "GiveItem", "params": { "prototype_id": "card_rusty_sword" } }
+      ],
+      "next_quests": ["quest_explore_village"]
+    },
+    "quest_explore_village": {
+      "name": "Explore the Village",
+      "description": "Look around the village and find the path to other areas.",
+      "category": "main",
+      "previous_quests": ["quest_merchant_intro"],
+      "objectives": [
+        {
+          "id": "obj_find_north_path",
+          "type": "HasFlag",
+          "params": { "flag": "path_north_opened" },
+          "description": "Find the path north"
+        }
+      ],
+      "rewards": [
+        { "type": "SetFlag", "params": { "flag": "zone_forest_unlocked", "value": true } }
+      ],
+      "next_quests": ["quest_forest_danger"]
+    },
+    "quest_forest_danger": {
+      "name": "Into the Dark Forest",
+      "description": "The dark forest is home to dangerous enemies.",
+      "category": "main",
+      "previous_quests": ["quest_explore_village"],
+      "objectives": [
+        {
+          "id": "obj_explore_forest",
+          "type": "ExploreZone",
+          "params": { "zone_id": "zone_forest" },
+          "description": "Explore the Dark Forest"
+        },
+        {
+          "id": "obj_defeat_skeletal",
+          "type": "DefeatEnemy",
+          "params": { "enemy_id": "skeletal_warrior" },
+          "description": "Defeat the Skeletal Warrior"
+        }
+      ],
+      "rewards": [
+        { "type": "GiveItem", "params": { "prototype_id": "card_shadow_cloak" } },
+        { "type": "SetFlag", "params": { "flag": "knows_ruin_secret", "value": true } }
+      ],
+      "next_quests": ["quest_ruins_discovery"]
+    },
+    "quest_ruins_discovery": {
+      "name": "Secrets of the Ruins",
+      "description": "You heard about ancient ruins with treasures. Time to investigate.",
+      "category": "main",
+      "previous_quests": ["quest_forest_danger"],
+      "objectives": [
+        {
+          "id": "obj_explore_ruins",
+          "type": "ExploreZone",
+          "params": { "zone_id": "zone_ruins" },
+          "description": "Explore the Ancient Ruins"
+        },
+        {
+          "id": "obj_defeat_assassin",
+          "type": "DefeatEnemy",
+          "params": { "enemy_id": "shadow_assassin" },
+          "description": "Defeat the Shadow Assassin"
+        }
+      ],
+      "rewards": [
+        { "type": "GiveItem", "params": { "prototype_id": "card_ancient_sword" } },
+        { "type": "SetFlag", "params": { "flag": "ruins_door_opened", "value": true } },
+        { "type": "SetFlag", "params": { "flag": "zone_treasure_unlocked", "value": true } }
+      ],
+      "next_quests": []
+    }
+  }
+}

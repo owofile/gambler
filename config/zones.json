@@ -1,0 +1,88 @@
+{
+  "zones": {
+    "zone_village": {
+      "name": "Starting Village",
+      "scene_path": "res://scenes/World/SampleWorld.tscn",
+      "unlock_flag": "",
+      "required_flags": [],
+      "teleport_points": [
+        {
+          "id": "tp_village_center",
+          "position": {"x": 400, "y": 300},
+          "target_zone": "zone_ruins",
+          "target_tp": "tp_ruins_entrance"
+        }
+      ],
+      "connections": [
+        {
+          "to_zone": "zone_forest",
+          "unlock_flag": "path_north_opened",
+          "position": {"x": 500, "y": 50}
+        }
+      ]
+    },
+    "zone_forest": {
+      "name": "Dark Forest",
+      "scene_path": "res://scenes/World/SampleWorld.tscn",
+      "unlock_flag": "zone_forest_unlocked",
+      "required_flags": [],
+      "teleport_points": [
+        {
+          "id": "tp_forest_clearing",
+          "position": {"x": 200, "y": 200},
+          "target_zone": "zone_village",
+          "target_tp": "tp_village_center"
+        },
+        {
+          "id": "tp_forest_depths",
+          "position": {"x": 600, "y": 400},
+          "target_zone": "zone_ruins",
+          "target_tp": "tp_ruins_entrance"
+        }
+      ],
+      "connections": [
+        {
+          "to_zone": "zone_ruins",
+          "unlock_flag": "path_east_opened",
+          "position": {"x": 750, "y": 300}
+        }
+      ]
+    },
+    "zone_ruins": {
+      "name": "Ancient Ruins",
+      "scene_path": "res://scenes/World/SampleWorld.tscn",
+      "unlock_flag": "zone_ruins_unlocked",
+      "required_flags": ["knows_ruin_secret"],
+      "teleport_points": [
+        {
+          "id": "tp_ruins_entrance",
+          "position": {"x": 100, "y": 300},
+          "target_zone": "zone_village",
+          "target_tp": "tp_village_center"
+        }
+      ],
+      "connections": [
+        {
+          "to_zone": "zone_treasure",
+          "unlock_flag": "ruins_door_opened",
+          "position": {"x": 700, "y": 500}
+        }
+      ]
+    },
+    "zone_treasure": {
+      "name": "Treasure Chamber",
+      "scene_path": "res://scenes/World/SampleWorld.tscn",
+      "unlock_flag": "zone_treasure_unlocked",
+      "required_flags": ["ruins_door_opened"],
+      "teleport_points": [
+        {
+          "id": "tp_treasure_exit",
+          "position": {"x": 400, "y": 100},
+          "target_zone": "zone_ruins",
+          "target_tp": "tp_ruins_entrance"
+        }
+      ],
+      "connections": []
+    }
+  }
+}

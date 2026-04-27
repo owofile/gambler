@@ -91,7 +91,7 @@ func _show_round_result(player_total: int, enemy_total: int, enemy_card_ids: Arr
 	var result_text = "平局" if result == 0 else ("玩家胜利" if result == 1 else "敌人胜利")
 	print("[BattleRunner] === 回合结果 ===")
 	print("[BattleRunner] 玩家点数: %d vs 敌人点数: %d" % [player_total, enemy_total])
-	print("[BattleRunner] 敌人出牌: %s" % enemy_card_ids)
+	print("[BattleRunner] 敌人出牌: " + str(enemy_card_ids))
 	print("[BattleRunner] 当前比分: %d - %d" % [_player_score, _enemy_score])
 	print("[BattleRunner] ====================")
 
