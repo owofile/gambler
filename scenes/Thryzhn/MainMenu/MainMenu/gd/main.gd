@@ -79,7 +79,4 @@ func _start_game() -> void:
 	WorldState.clear_all_flags()
 	CardMgr.clear_all_cards()
 
-	SaveManager.auto_save()
-	print("[MainMenu] 存档已创建，卡牌背包已初始化")
-
 	SceneChanger.scene_changer("res://scenes/Thryzhn/TestScenes/cave/cave/cave.tscn")
