@@ -17,6 +17,7 @@ Godot 4.3 卡牌对战游戏
 
 ## 版本
 
+- v3.5: 新增卡牌特效系统设计文档（EFFECTS_SYSTEM.md），Phase 1-3 实现计划
 - v3.4: 运行时错误修复（着色器丢失、静态调用、缺失变量、主菜单音量加载）
 - v3.3: 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式
 - v3.0: 整合thryzhn横板探索系统

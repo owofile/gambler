@@ -4,6 +4,7 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-27 | v3.5 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划，Buff系统、目标选择、执行顺序） |
 | 2026-04-27 | v3.4 | 运行时错误修复：着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单音量加载 |
 | 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
 | 2026-04-27 | v3.2 | 新增MapManager、QuestManager、示例配置JSON |
@@ -287,7 +288,7 @@ SceneChanger (无依赖)
 
 ---
 
-## 9. 目录结构 (v3.3)
+## 9. 目录结构 (v3.5)
 
 ```
 gambler/
@@ -296,13 +297,32 @@ gambler/
 │   │   ├── BattleManager.gd
 │   │   ├── BattleFlowManager.gd
 │   │   ├── CardManager.gd
+│   │   ├── CardSelector.gd
 │   │   ├── EventBus.gd
 │   │   ├── GameStateManager.gd
+│   │   ├── Logger.gd
 │   │   └── SceneRunnerV2.gd
+│   ├── data/
+│   │   ├── BattleReport.gd
+│   │   ├── CardData.gd
+│   │   ├── CardInstance.gd
+│   │   ├── CardSnapshot.gd
+│   │   ├── DeckSnapshot.gd
+│   │   ├── EffectContext.gd
+│   │   ├── CostContext.gd
+│   │   └── ...
+│   ├── effects/                   # 特效系统 (v3.5 设计文档)
+│   │   ├── IEffectHandler.gd     # 特效接口（核心契约）
+│   │   ├── FixedBonusEffect.gd   # 固定加成
+│   │   └── RuleReversalEffect.gd # 规则反转
+│   ├── costs/                     # 代价系统
+│   │   ├── ICostHandler.gd
+│   │   ├── NextTurnUnusableCost.gd
+│   │   └── SelfDestroyCost.gd
 │   ├── dialogue/
 │   │   ├── NarrativeEngine.gd    # Model
 │   │   ├── DialogueSystem.gd     # Controller
-│   │   └── DialogueUI.gd         # (备用Controller)
+│   │   └── DialogueUI.gd
 │   ├── world/
 │   │   ├── WorldState.gd
 │   │   ├── SaveManager.gd
@@ -312,23 +332,34 @@ gambler/
 │   ├── player/
 │   │   ├── PlayerController.gd
 │   │   └── PlayerStateMachine.gd
-│   └── ...
+│   └── autoload/
+│       ├── DataManager.gd
+│       ├── CardMgr.gd
+│       └── EventBus.gd
 ├── scenes/
-│   ├── Thryzhn/UI_Scenes/dialogue/
-│   │   ├── dialogue.tscn
-│   │   └── gd/
-│   │       ├── dialogue.gd
-│   │       ├── dialogue_box_parent.gd
-│   │       └── item_bar.gd
-│   └── ...
-├── dialogues/                    # 对话树JSON配置
+│   ├── Thryzhn/
+│   │   ├── MainMenu/
+│   │   ├── UI_Scenes/
+│   │   │   ├── dialogue/
+│   │   │   └── settings/
+│   │   ├── Player/
+│   │   └── SceneChanger/
+│   ├── BattleUI_v1.tscn
+│   └── Battle_UI_v1.tscn
+├── resources/
+│   ├── card_prototypes.json       # 卡牌原型配置
+│   └── enemy_registry.json        # 敌人配置
+├── dialogues/                     # 对话树JSON
 │   └── merchant.json
-├── config/                       # 游戏配置
+├── config/                        # 游戏配置
 │   ├── zones.json
 │   └── quests.json
+├── Shader/
+│   └── Grass_Sway.gdshader
 └── docs/
+    ├── ARCHITECTURE.md
     ├── MODULES.md
-    └── ARCHITECTURE.md
+    └── EFFECTS_SYSTEM.md          # 特效系统设计文档 (v3.5)
 ```
 
 ---

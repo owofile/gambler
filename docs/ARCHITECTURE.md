@@ -820,9 +820,31 @@ EventBus.publish("StartDialogueTree", {"path": "res://dialogues/merchant.json"})
 
 ---
 
-## 13. v3.4 更新：运行时错误修复
+## 13. v3.5 更新：卡牌特效系统设计文档
 
-### 13.1 修复内容
+详见 `docs/EFFECTS_SYSTEM.md`。
+
+**核心设计原则：每个模块只做它规定的事情。**
+
+| 设计点 | 说明 |
+|--------|------|
+| `IEffectHandler` 接口 | 简单卡10行，复杂卡100行，都实现同一接口 |
+| 优先级分组执行 | 通过 `get_priority()` 排序，handler之间完全隔离 |
+| `EffectContext` 共享 | 模块间唯一通信渠道，按需扩展字段 |
+| `Buff` 抽象 | 临时/永久 buff 共用一套存储和接口 |
+| `TargetSelector` 分离 | 目标选择逻辑与效果逻辑解耦 |
+| Phase 递增实现 | Phase 1-3 各自独立可运行，不破坏现有功能 |
+
+**Phase 实现计划：**
+- Phase 1：Buff 基类、TemporaryBuff、PermanentBuff、CardInstance._active_buffs、TargetSelector
+- Phase 2：延迟机制（_pending_buffs、context.add_pending_buff、RoundStart 时应用）
+- Phase 3：条件效果、防重复触发、_round 字段
+
+---
+
+## 14. v3.4 更新：运行时错误修复
+
+### 14.1 修复内容
 
 | 文件 | 问题 | 修复方式 |
 |------|------|----------|
@@ -831,7 +853,7 @@ EventBus.publish("StartDialogueTree", {"path": "res://dialogues/merchant.json"})
 | `CardSelector.gd:31,155` | `_available_cards` 变量未声明 | 添加 `var _available_cards: Array = []` |
 | `main.gd` (主菜单) | 主菜单启动时不加载音量设置 | 新增 `_load_settings_once()` 在 `_ready()` 时加载并应用设置 |
 
-### 13.2 设置系统
+### 14.2 设置系统
 
 **配置文件路径**: `user://settings.cfg`（`%APPDATA%/gambler/settings.cfg`）
 
@@ -843,16 +865,16 @@ EventBus.publish("StartDialogueTree", {"path": "res://dialogues/merchant.json"})
 
 **加载时机**: 主菜单场景 `main.gd` 的 `_ready()` 时自动加载并应用（无需进入设置界面）
 
-### 13.3 待办
+### 14.3 待办
 
 - [ ] SceneRunnerV2 运行时编译错误排查（如仍有报错）
 - [ ] Settings 界面重构为独立场景，避免重复实例化 settingsManager
 
 ---
 
-## 14. 已知问题 (v3.1)
+## 15. 已知问题 (v3.1)
 
-### 14.1 Godot 4 GDScript 类型限制
+### 15.1 Godot 4 GDScript 类型限制
 
 Godot 4 GDScript 不支持 `Array[Type]` 写法，所有数组类型已改为无类型 `Array`。
 
