@@ -40,6 +40,7 @@ func setup(battle_ui: Node, enemy: EnemyData) -> void:
 	print("[BattleRunner] Setup complete with enemy: %s" % enemy.get_enemy_name())
 
 func _start_battle() -> void:
+	print("[BattleRunner] _start_battle() called")
 	if not _card_manager:
 		push_error("[BattleRunner] CardMgr not available!")
 		return
@@ -50,15 +51,18 @@ func _start_battle() -> void:
 		if c:
 			all_card_ids.append(c.get_card_id())
 
-	if all_card_ids.size() == 0:
-		push_error("[BattleRunner] No cards in deck! Cannot start battle.")
+	print("[Runner] deck size: ", all_card_ids.size())
+	if all_card_ids.size() < 3:
+		print("[Runner] ERROR: Need at least 3 cards to battle!")
+		print("[Runner] Tip: Press F1 → A to add random cards")
 		return
 
 	var snapshot = _card_manager.get_deck_snapshot(all_card_ids)
 	var config = BattleConfig.from_enemy_data(_current_enemy)
 	config.target_wins = target_wins
-	config.enable_card_consumption = false  # 暂时禁用消耗，后续添加补牌机制后启用
+	config.enable_card_consumption = false
 
+	print("[Runner] calling _battle_flow.start_battle()")
 	if _battle_flow:
 		_battle_flow.start_battle(snapshot, _current_enemy, config)
 
