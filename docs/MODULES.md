@@ -4,6 +4,8 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-28 | v4.1 | InputManager全局输入、调试菜单重构(OOP)、SaveManager修复OOP封装、调试菜单UI改进 |
+| 2026-04-28 | v4.0 | 新增调试菜单(DebugMenu)、卡牌背包系统、存档系统重构、移hardcoded初始卡牌 |
 | 2026-04-27 | v3.5 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划，Buff系统、目标选择、执行顺序） |
 | 2026-04-27 | v3.4 | 运行时错误修复：着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单音量加载 |
 | 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
@@ -18,7 +20,7 @@
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              Autoload Layer                                  │
 │  DataManager → CardMgr → EventBus → GameState → WorldState → SaveManager    │
-│  → MapManager → QuestManager → SceneChanger                                │
+│  → MapManager → QuestManager → SceneChanger → InputManager                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                      │
                                      ▼
@@ -284,12 +286,88 @@ MapManager (依赖WorldState)
 QuestManager (依赖WorldState, CardMgr, EventBus)
     ↓
 SceneChanger (无依赖)
+    ↓
+InputManager (无依赖)
 ```
 
 ---
 
-## 9. 目录结构 (v3.5)
+## 9. 目录结构 (v4.0)
 
+```
+gambler/
+├── scripts/
+│   ├── core/
+│   │   ├── BattleManager.gd
+│   │   ├── BattleFlowManager.gd
+│   │   ├── CardManager.gd
+│   │   ├── CardSelector.gd
+│   │   ├── EventBus.gd
+│   │   ├── GameStateManager.gd
+│   │   ├── Logger.gd
+│   │   └── SceneRunnerV2.gd
+│   ├── data/
+│   │   ├── CardData.gd
+│   │   ├── CardInstance.gd
+│   │   ├── CardSnapshot.gd
+│   │   ├── DeckSnapshot.gd
+│   │   ├── EffectContext.gd
+│   │   ├── CostContext.gd
+│   │   └── ...
+│   ├── effects/                   # 特效系统 (v3.5 设计文档)
+│   │   ├── IEffectHandler.gd     # 特效接口（核心契约）
+│   │   ├── FixedBonusEffect.gd   # 固定加成
+│   │   └── RuleReversalEffect.gd # 规则反转
+│   ├── costs/                     # 代价系统
+│   │   ├── ICostHandler.gd
+│   │   ├── NextTurnUnusableCost.gd
+│   │   └── SelfDestroyCost.gd
+│   ├── dialogue/
+│   │   ├── NarrativeEngine.gd    # Model
+│   │   ├── DialogueSystem.gd     # Controller
+│   │   └── DialogueUI.gd
+│   ├── world/
+│   │   ├── WorldState.gd
+│   │   ├── SaveManager.gd
+│   │   ├── MapManager.gd
+│   │   ├── QuestManager.gd
+│   │   └── WorldManager.gd
+│   ├── player/
+│   │   ├── PlayerController.gd
+│   │   └── PlayerStateMachine.gd
+│   └── autoload/
+│       ├── DataManager.gd
+│       ├── CardMgr.gd
+│       ├── EventBus.gd
+│       └── InputManager.gd
+├── scenes/
+│   ├── Thryzhn/
+│   │   ├── MainMenu/
+│   │   ├── UI_Scenes/
+│   │   │   ├── dialogue/
+│   │   │   ├── settings/
+│   │   │   └── debug/            # 调试菜单 (v4.0)
+│   │   │       ├── debug.tscn
+│   │   │       └── gd/debug_menu.gd
+│   │   ├── Player/
+│   │   ├── SceneChanger/
+│   │   └── TestScenes/cave/
+│   ├── BattleUI_v1.tscn
+│   └── Battle_UI_v1.tscn
+├── resources/
+│   ├── card_prototypes.json       # 卡牌原型配置
+│   └── enemy_registry.json        # 敌人配置
+├── dialogues/                     # 对话树JSON
+│   └── merchant.json
+├── config/                        # 游戏配置
+│   ├── zones.json
+│   └── quests.json
+├── Shader/
+│   └── Grass_Sway.gdshader
+└── docs/
+    ├── ARCHITECTURE.md
+    ├── MODULES.md
+    └── EFFECTS_SYSTEM.md          # 特效系统设计文档 (v3.5)
 ```
 gambler/
 ├── scripts/
@@ -335,7 +413,8 @@ gambler/
 │   └── autoload/
 │       ├── DataManager.gd
 │       ├── CardMgr.gd
-│       └── EventBus.gd
+│       ├── EventBus.gd
+│       └── InputManager.gd
 ├── scenes/
 │   ├── Thryzhn/
 │   │   ├── MainMenu/
@@ -390,8 +469,107 @@ gambler/
 
 ---
 
-## 11. 待办事项
+## 11. 新游戏流程 (v4.0)
 
+### 11.1 游戏启动流程
+
+```
+主菜单
+    ↓
+[开始游戏] → 清空状态 → 自动创建存档 → 进入游戏世界
+    ↓
+[设置] → 打开设置界面
+```
+
+### 11.2 新游戏初始化
+
+开始新游戏时执行：
+```gdscript
+WorldState.clear_all_flags()   # 清空世界状态
+CardMgr.clear_all_cards()       # 清空卡牌背包
+SaveManager.auto_save()         # 创建初始存档（空卡牌）
+```
+
+### 11.3 调试菜单
+
+**文件**:
+- `scenes/Thryzhn/UI_Scenes/debug/debug.tscn` - 调试菜单场景
+- `scenes/Thryzhn/UI_Scenes/debug/gd/debug_menu.gd` - 调试菜单脚本
+- `scripts/autoload/InputManager.gd` - 全局输入管理器
+
+**打开方式**: 按 `ui_DebugMenu`（默认 F1）
+
+**输入映射**（需在 Project Settings 中配置）:
+| Action | 用途 |
+|--------|------|
+| `ui_DebugMenu` | 打开/关闭调试菜单 |
+| `ui_DebugMenu_Up` | 上移选择 |
+| `ui_DebugMenu_Down` | 下移选择 |
+| `ui_DebugMenu_Accept` | 确认/执行 |
+| `ui_DebugMenu_Cancel` | 返回（先关闭库存面板，再关闭菜单） |
+
+**功能**:
+| 选项 | 说明 |
+|------|------|
+| 存档 | 调用 `SaveManager.auto_save()` |
+| 读档 | 调用 `SaveManager.load_game()` |
+| 添加随机卡牌 | 从卡牌原型库随机添加一张到背包 |
+| 显示背包 | 打开/关闭库存面板 |
+
+**OOP设计**:
+- `_handle_cancel()` - 优先关闭库存面板，再关闭菜单
+- `_close_inventory()` - 专门负责关闭库存面板
+- `_back()` - 专门负责关闭菜单
+
+### 11.4 卡牌背包系统
+
+**文件**: `scripts/core/CardManager.gd` (Autoload)
+
+**接口**:
+```gdscript
+CardMgr.add_card(prototype_id)     # 添加卡牌
+CardMgr.remove_card(instance_id)    # 移除卡牌（锁定卡不可移除）
+CardMgr.get_all_cards()            # 获取所有卡牌
+CardMgr.get_deck_size()            # 背包卡牌数量
+CardMgr.clear_all_cards()          # 清空背包
+CardMgr.MAX_DECK_SIZE              # 最大容量 = 20
+```
+
+### 11.5 存档系统
+
+**文件**: `scripts/world/SaveManager.gd` (Autoload)
+
+**接口**:
+```gdscript
+SaveManager.save_game(path)        # 手动存档
+SaveManager.load_game(path)         # 读档
+SaveManager.auto_save()            # 自动存档到 autosave.json
+SaveManager.has_save()             # 检查存档是否存在
+SaveManager.list_saves()           # 列出所有存档
+SaveManager.get_last_save_info()   # 获取存档信息
+```
+
+**存档数据结构**:
+```json
+{
+  "version": 1,
+  "timestamp": 1234567890,
+  "current_zone": "zone_village",
+  "player_position": {"x": 100, "y": 200},
+  "world_state": { "flag1": true, "flag2": 3 },
+  "card_instances": [
+    {"prototype_id": "card_sword", "delta_value": 0, "bind_status": 0}
+  ]
+}
+```
+
+---
+
+## 12. 待办事项
+
+- [x] InputManager - 全局输入管理器，F1键触发调试菜单
+- [x] 调试菜单 (DebugMenu) - 存档、读档、添加卡牌、背包显示
+- [ ] 继续游戏按钮 - 主菜单增加"继续"选项检测存档
 - [ ] 自动存档触发器 - 区域切换时自动存档
 - [ ] ChapterManager - 章节/进度系统
 - [ ] NPC系统 - NPC状态、位置、交互

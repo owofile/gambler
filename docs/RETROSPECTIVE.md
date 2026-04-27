@@ -4,13 +4,180 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-28 | v1.1 | 新增Godot 4 API变更、OOP封装、_process与await、调试策略等经验 |
 | 2026-04-24 | v1.0 | 初始创建，记录所有已知问题与解决方案 |
 
 ---
 
 ## 1. 问题清单
 
-### 问题 1：Parser Error - class_name 与 Autoload 冲突
+### 问题 1：Godot 4 `call_deferred()` API 变更
+
+**错误信息**：
+```
+Parser Error: Invalid argument for "call_deferred()" function: argument 1 should be "StringName" but is "Callable".
+```
+
+**根本原因**：
+- Godot 4 中 `call_deferred()` 不再接受 `Callable`（lambda）
+- 必须使用 `object.call_deferred("method_name", arg1, arg2)` 的字符串方法名语法
+
+**解决方案**：
+```gdscript
+# 错误写法 - Godot 4 不支持
+call_deferred(func(): get_tree().change_scene_to_file(path))
+
+# 正确写法 - 使用字符串方法名
+get_tree().call_deferred("change_scene_to_file", path)
+```
+
+**经验教训**：
+- Godot 4 对 GDScript 语法有重大变更
+- 迁移到 Godot 4 时需注意 API 差异
+- 官方文档：https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_basics.html
+
+---
+
+### 问题 2：RefCounted 类私有属性直接访问
+
+**错误信息**：
+```
+Invalid access to property or key 'prototype_id' on a base object of type 'RefCounted (CardInstance)'.
+```
+
+**根本原因**：
+- `CardInstance` 使用私有变量 `_prototype_id` 并提供 getter/setter
+- 外部代码（如 SaveManager）直接访问 `card.prototype_id` 违反封装
+
+**解决方案**：
+```gdscript
+# CardInstance (正确封装的OOP设计)
+var _prototype_id: String = ""
+
+func get_prototype_id() -> String:
+    return _prototype_id
+
+# 外部访问 (必须使用getter)
+card.get_prototype_id()  # ✅
+card.prototype_id        # ❌ Parser Error
+
+# Setter 也必须使用
+instance.set_delta_value(5)   # ✅
+instance.delta_value = 5       # ❌ Parser Error
+```
+
+**经验教训**：
+- 遵循 OOP 封装原则：数据类必须将属性设为私有，通过 getter/setter 访问
+- Godot 4 对属性访问检查更严格
+- 所有数据类（RefCounted/Resource）必须实现完整的 getter/setter 封装
+
+---
+
+### 问题 3：`_process` 中使用 `await` 导致输入阻塞
+
+**错误信息**：
+- 调试菜单无法响应按键
+- ESC/Enter 等按键完全无反应
+
+**根本原因**：
+```gdscript
+func _process(delta: float) -> void:
+    if Input.is_action_just_pressed("ui_up"):
+        # await 会阻塞整个 _process 函数 0.2 秒
+        await get_tree().create_timer(0.2).timeout
+        _move_selection_up()
+```
+
+- `_process` 中 `await` 会暂停整个函数
+- 暂停期间无法处理其他输入
+- `is_action_just_pressed()` 只在按键按下那一帧返回 `true`
+
+**解决方案** - 使用 cooldown 变量代替 await：
+```gdscript
+var _input_cooldown: float = 0.0
+const INPUT_DELAY := 0.2
+
+func _process(delta: float) -> void:
+    _input_cooldown = maxf(_input_cooldown - delta, 0.0)
+    if _input_cooldown > 0:
+        return  # 冷却中，跳过处理
+
+    if Input.is_action_just_pressed("ui_up"):
+        _move_selection_up()
+        _input_cooldown = INPUT_DELAY  # 设置冷却
+```
+
+**经验教训**：
+- `_process` 中避免使用 `await`（会阻塞整个函数）
+- 使用 cooldown 变量实现延迟效果
+- `is_action_just_pressed()` 检测的是"刚按下"状态，不是"按住"状态
+
+---
+
+### 问题 4：GDScript 缩进导致的 Parser Error
+
+**错误信息**：
+```
+Parser Error: Expected statement, found "Indent" instead.
+```
+
+**根本原因**：
+- GDScript 对缩进要求严格
+- `else:` 必须与对应的 `if` 对齐
+- 多余的缩进会导致解析错误
+
+**错误示例**：
+```gdscript
+func _update_inventory_display() -> void:
+    var all_cards = CardMgr.get_all_cards()
+        if all_cards.size() == 0:  # ❌ 多了一个缩进
+            text += "(空)"
+```
+
+**正确写法**：
+```gdscript
+func _update_inventory_display() -> void:
+    var all_cards = CardMgr.get_all_cards()
+    if all_cards.size() == 0:  # ✅ 与 var 对齐
+        text += "(空)"
+```
+
+**经验教训**：
+- GDScript 使用 Tab/空格混合时容易出错
+- `else`/`elif` 必须与对应的 `if` 缩进一致
+- 使用 IDE 的格式化功能保持一致缩进
+
+---
+
+### 问题 5：CanvasLayer `process_mode` 导致输入异常
+
+**现象**：
+- 调试菜单的 `_ready()` 打印正常
+- 但 `_process` 完全不执行
+- 所有输入无响应
+
+**根本原因**：
+- 场景文件中设置了 `process_mode = 2`（When Paused）
+- 导致节点在暂停状态时不处理输入
+
+**解决方案**：
+```ini
+# debug.tscn
+[node name="DebugMenu" type="CanvasLayer"]
+process_mode = 2  # ❌ When Paused - 删除此行
+
+[node name="DebugMenu" type="CanvasLayer"]
+# ✅ 默认值 (Inherit) - 正常处理输入
+```
+
+**经验教训**：
+- Godot 4 CanvasLayer 默认 `process_mode = 0` (Inherit)
+- `process_mode = 2` (When Paused) 会导致输入处理异常
+- 创建 UI 层时要确保 `process_mode` 正确
+
+---
+
+### 问题 6：Parser Error - class_name 与 Autoload 冲突
 
 **错误信息**：
 ```
@@ -234,6 +401,57 @@ var dm = get_node("/root/DataManager")
 # 在其他 Node 中可以直接写 DataManager.xxx
 ```
 
+### 2.5 Godot 4 `call_deferred()` 语法
+
+```gdscript
+# Godot 3.x (Callable lambda)
+call_deferred(func(): some_object.method())
+
+# Godot 4.x (必须用字符串方法名)
+some_object.call_deferred("method", arg1, arg2)
+```
+
+### 2.6 `_process` 中避免 await
+
+```gdscript
+# ❌ 错误 - await 会阻塞整个函数
+func _process(delta):
+    if condition:
+        await some_signal
+
+# ✅ 正确 - 使用状态机或cooldown
+func _process(delta):
+    if _cooldown > 0:
+        _cooldown -= delta
+        return
+    if condition:
+        do_action()
+        _cooldown = 0.2
+```
+
+### 2.7 数据类 OOP 封装规范
+
+所有数据类必须遵循封装原则：
+
+```gdscript
+class_name CardInstance
+extends RefCounted
+
+# 私有属性
+var _prototype_id: String = ""
+
+# Getter (必须)
+func get_prototype_id() -> String:
+    return _prototype_id
+
+# Setter (必须，验证输入)
+func set_prototype_id(value: String) -> void:
+    if value.is_empty():
+        push_error("Prototype ID cannot be empty")
+        return
+    _prototype_id = value
+```
+
 ---
 
 ## 3. 代码组织规范
@@ -271,19 +489,44 @@ extends RefCounted
 
 ## 4. 调试检查清单
 
-当遇到解析错误时，按以下顺序检查：
-
+### 解析错误 (Parser Error)
 1. [ ] Autoload Enable 是否全部勾选？
 2. [ ] Autoload 脚本是否使用了 class_name？（应移除）
 3. [ ] 静态类/RefCounted 是否调用了 get_node()？（改用依赖注入）
 4. [ ] 类型化 Array 赋值是否类型匹配？
 5. [ ] match 语句中是否有错误的 return？
+6. [ ] 缩进是否正确？（else 与 if 对齐）
+7. [ ] 数据类属性是否使用 getter/setter 访问？
+
+### 运行时错误 (Runtime Error)
+1. [ ] `call_deferred()` 是否使用 Godot 4 语法（字符串方法名）？
+2. [ ] CanvasLayer 的 `process_mode` 是否正确？
+3. [ ] `_process` 中是否有 await 导致阻塞？
+
+### 调试技巧
+1. [ ] 在 `_init()`/`_ready()` 中添加 print 确认脚本加载
+2. [ ] 在 `_process()` 中添加周期性 print 确认函数执行
+3. [ ] 使用 `InputMap.has_action("action_name")` 检查输入映射
+4. [ ] 场景节点路径是否正确（`$Panel/InfoLabel` vs `$Panel/VBox/InfoLabel`）
 
 ---
 
 ## 5. 后续开发注意事项
 
+### OOP 与封装
 1. **任何新增的 Autoload 节点**，不要在脚本中写 `class_name`
 2. **任何需要访问场景树的模块**，必须是 `Node` 或通过参数注入
 3. **共享的数据结构**（DeckSnapshot、CardSnapshot 等）必须独立成文件
 4. **修改 `project.godot` 后**，确认 Autoload Enable 状态
+5. **数据类必须封装**：所有 RefCounted/Resource 的属性必须是私有的，通过 getter/setter 访问
+
+### Godot 4 迁移注意
+1. `call_deferred()` 不再接受 Callable，使用 `object.call_deferred("method", args)`
+2. `_process` 中避免使用 `await`，使用 cooldown 变量代替
+3. Typed Array 有已知限制，使用无类型 Array + 显式类型转换
+
+### 调试工作流
+1. 先确认 `_ready()` 是否执行（添加 print）
+2. 再确认 `_process()` 是否执行（添加周期性 print）
+3. 检查 InputMap 配置和 process_mode 设置
+4. 逐步注释代码隔离问题

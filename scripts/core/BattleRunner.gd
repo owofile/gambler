@@ -20,15 +20,6 @@ var _enemy_score: int = 0
 var _battle_ui: Node = null
 var _battle_in_progress: bool = false
 
-const INITIAL_CARD_IDS: Array = [
-	"card_rusty_sword",
-	"card_friendly_spirit",
-	"card_justice",
-	"card_blood_oath",
-	"card_vengeance",
-	"card_kings_authority"
-]
-
 func _ready() -> void:
 	_card_manager = get_node_or_null("/root/CardMgr")
 	_data_manager = get_node_or_null("/root/DataManager")

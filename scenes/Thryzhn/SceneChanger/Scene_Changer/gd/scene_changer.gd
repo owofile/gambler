@@ -23,7 +23,7 @@ func scene_changer(path):
 #	等待动画执行完毕
 	await animation.animation_finished
 #	跳转对应场景
-	call_deferred(func(): get_tree().change_scene_to_file(path))
+	get_tree().call_deferred("change_scene_to_file", path)
 #	反向播放切换动画
 	animation.play_backwards("Gradient")
 #	等待动画执行完毕

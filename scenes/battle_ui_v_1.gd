@@ -49,15 +49,6 @@ const CARD_INFO_BORDER_WIDTH := 2
 const CARD_INFO_CONTENT_OFFSET_X := 10
 const CARD_INFO_CONTENT_OFFSET_Y := 10
 
-const INITIAL_CARD_IDS: Array = [
-	"card_rusty_sword",
-	"card_friendly_spirit",
-	"card_justice",
-	"card_blood_oath",
-	"card_vengeance",
-	"card_kings_authority"
-]
-
 var _battle_runner: BattleRunner = null
 
 func _ready() -> void:
@@ -89,12 +80,6 @@ func _initialize_deck_if_empty() -> void:
 	if _card_manager == null:
 		push_error("[BattleUI_v1] CardMgr not found!")
 		return
-
-	var current_cards = _card_manager.get_all_cards()
-	if current_cards.size() == 0:
-		print("[BattleUI_v1] No cards found, initializing default deck...")
-		for proto_id in INITIAL_CARD_IDS:
-			_card_manager.add_card(proto_id)
 
 	if _data_manager == null:
 		push_error("[BattleUI_v1] DataManager not found!")

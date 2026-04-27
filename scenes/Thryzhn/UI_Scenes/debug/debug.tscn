@@ -1,0 +1,121 @@
+[gd_scene load_steps=2 format=3 uid="uid://bdebug001"]
+
+[ext_resource type="Script" path="res://scenes/Thryzhn/UI_Scenes/debug/gd/debug_menu.gd" id="1_debug"]
+
+[node name="DebugMenu" type="CanvasLayer"]
+script = ExtResource("1_debug")
+
+[node name="Panel" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 0.95)
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "[ DEBUG MENU ]"
+horizontal_alignment = 1
+
+[node name="Separator1" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="SaveInfo" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "存档状态: 无"
+horizontal_alignment = 1
+
+[node name="CardInfo" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "卡牌数量: 0"
+horizontal_alignment = 1
+
+[node name="Separator2" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptionsLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "--- 操作 ---"
+horizontal_alignment = 1
+
+[node name="Options" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Option0" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "> 存档"
+horizontal_alignment = 1
+
+[node name="Option1" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  读档"
+horizontal_alignment = 1
+
+[node name="Option2" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  添加随机卡牌"
+horizontal_alignment = 1
+
+[node name="Option3" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  显示背包"
+horizontal_alignment = 1
+
+[node name="Option4" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  返回"
+horizontal_alignment = 1
+
+[node name="Separator3" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="ControlsHint" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "↑↓: 选择 | Enter: 确认 | ESC: 返回"
+horizontal_alignment = 1
+
+[node name="InventoryPanel" type="ColorRect" parent="Panel"]
+visible = false
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.2, 0.95)
+
+[node name="InventoryTitle" type="Label" parent="Panel/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "=== 背包 ==="
+horizontal_alignment = 1
+
+[node name="InventoryScroll" type="ScrollContainer" parent="Panel/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 25.0
+grow_horizontal = 2
+
+[node name="InventoryLabel" type="Label" parent="Panel/InventoryPanel/InventoryScroll"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+text = "(空)"

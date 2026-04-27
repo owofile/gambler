@@ -107,9 +107,9 @@ func _collect_save_data() -> Dictionary:
 		var all_cards = CardMgr.get_all_cards()
 		for card in all_cards:
 			card_data.append({
-				"prototype_id": card.prototype_id,
-				"delta_value": card.delta_value,
-				"bind_status": card.bind_status
+				"prototype_id": card.get_prototype_id(),
+				"delta_value": card.get_delta_value(),
+				"bind_status": card.get_bind_status()
 			})
 
 	var world_data: Dictionary = {}
@@ -134,9 +134,9 @@ func _apply_save_data(data: Dictionary) -> void:
 		for card_data in data["card_instances"]:
 			var instance = CardMgr.add_card(card_data["prototype_id"])
 			if instance and card_data.has("delta_value"):
-				instance.delta_value = card_data.get("delta_value", 0)
+				instance.set_delta_value(card_data.get("delta_value", 0))
 			if instance and card_data.has("bind_status"):
-				instance.bind_status = card_data.get("bind_status", 0)
+				instance.set_bind_status(card_data.get("bind_status", 0))
 
 	if data.has("current_zone"):
 		_pending_zone = data["current_zone"]

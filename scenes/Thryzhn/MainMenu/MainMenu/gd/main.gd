@@ -67,11 +67,19 @@ func update_accept() -> void:
 	if Input.is_action_just_released("ui_accept"):
 		print("accept" + "选中了" + str(current_selection))
 		if current_selection == 0:
-			print("start game")
-			SceneChanger.scene_changer("res://scenes/Thryzhn/TestScenes/cave/cave/cave.tscn")
-			pass
+			_start_game()
 		if current_selection == 1:
 			#进入settings
 			SceneChanger.scene_changer("res://scenes/Thryzhn/MainMenu/MainMenu/settings.tscn")
-			pass
-	pass
+		pass
+
+func _start_game() -> void:
+	print("[MainMenu] 开始新游戏")
+
+	WorldState.clear_all_flags()
+	CardMgr.clear_all_cards()
+
+	SaveManager.auto_save()
+	print("[MainMenu] 存档已创建，卡牌背包已初始化")
+
+	SceneChanger.scene_changer("res://scenes/Thryzhn/TestScenes/cave/cave/cave.tscn")
