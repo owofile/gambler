@@ -223,6 +223,7 @@ func _calculate_round_result() -> int:
 	return 0
 
 func _execute_consume() -> void:
+	print("[BattleFlow] _execute_consume called. enable_card_consumption=", _config.enable_card_consumption)
 	if _config.enable_card_consumption:
 		var consumed = _card_consumer.consume_played_cards(_selected_card_ids, _disabled_card_ids)
 		print("[BattleFlow] Consumed %d cards" % consumed.size())
@@ -247,13 +248,16 @@ func _execute_round_end() -> void:
 	_check_battle_end()
 
 func _check_battle_end() -> void:
+	print("[BattleFlow] _check_battle_end: scores=%s target=%d" % [_scores, _config.target_wins])
 	if _scores[0] >= _config.target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Victory)
 	elif _scores[1] >= _config.target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 	else:
-		if _card_manager and _card_manager.get_deck_size() < _config.cards_per_round:
-			push_warning("[BattleFlow] Player has only %d cards, need %d. Forfeiting." % [_card_manager.get_deck_size(), _config.cards_per_round])
+		var deck_size = _card_manager.get_deck_size() if _card_manager else 0
+		print("[BattleFlow] deck_size=%d cards_per_round=%d" % [deck_size, _config.cards_per_round])
+		if deck_size < _config.cards_per_round:
+			push_warning("[BattleFlow] Player has only %d cards, need %d. Forfeiting." % [deck_size, _config.cards_per_round])
 			_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 		else:
 			_set_phase(Phase.PLAYER_SELECT)
