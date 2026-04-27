@@ -17,6 +17,10 @@
 | 2026-04-24 | v2.1 | 状态机与 BattleManager 整合，代价系统完整工作，Logger 日志系统 |
 | 2026-04-25 | v2.2 | 新增 BattleUI_v1 场景（Node2D 架构），卡片动画与交互系统 |
 | 2026-04-26 | v2.3 | 新增卡牌信息悬停面板，显示卡牌名称、类型、点数、效果等信息 |
+| 2026-04-27 | v3.4 | 修复多个运行时错误：Grass着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单启动时音量设置未加载 |
+| 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem)，MVC模式，NarrativeEngine与UI解耦 |
+| 2026-04-27 | v3.2 | 新增MapManager、QuestManager、示例配置JSON |
+| 2026-04-27 | v3.1 | 新增事件总线增强（幂等+确认机制）、WorldState、SaveManager、NarrativeEngine |
 | 2026-04-27 | v3.0 | 整合thryzhn横板探索系统，新增PlayerController、GameState、SceneChanger、DialogueSystem、BattleRunner |
 
 ---
@@ -739,3 +743,126 @@ Godot 4 GDScript 不支持 `Array[Type]` 写法，所有数组类型已改为无
 | `BattleRequested` | Dictionary {enemy_id} | 玩家请求战斗 |
 | `PlayerEnterBattle` | null | 玩家进入战斗 |
 | `DialogueEnded` | {} | 对话结束 |
+
+---
+
+## 12. v3.1 更新：领域驱动架构完善
+
+### 12.1 限界上下文完成度
+
+| 上下文 | 状态 | 核心模块 |
+|--------|------|----------|
+| 战斗 | ✅ 完成 | BattleManager, BattleFlowManager |
+| 卡牌 | ✅ 完成 | CardManager (含clear_all_cards) |
+| 叙事 | ✅ 完成 | NarrativeEngine, DialogueSystem |
+| 世界 | ✅ 完成 | WorldState, SaveManager |
+
+### 12.2 事件总线增强
+
+新增 `publish_with_ack` / `subscribe_with_ack` 支持命令+确认模式。
+
+新增事件ID追踪，相同event_id的事件不会重复处理。
+
+### 12.3 WorldState
+
+```gdscript
+# 键值对存储
+WorldState.set_flag("quest_progress", 3)
+WorldState.set_flag("npc_dead_merchant", false)
+WorldState.get_flag("quest_progress", 0)  # 支持默认值
+
+# 存档支持
+var save_data = WorldState.get_save_data()
+WorldState.load_save_data(save_data)
+```
+
+### 12.4 SaveManager
+
+```gdscript
+# 手动存档
+SaveManager.save_game()
+SaveManager.load_game()
+
+# 自动存档
+SaveManager.auto_save()
+
+# 检查存档
+SaveManager.has_save()  # 检查autosave
+SaveManager.list_saves()
+```
+
+### 12.5 NarrativeEngine
+
+对话树从JSON加载，支持条件-效应规则：
+
+```json
+{
+  "nodes": {
+    "start": {
+      "speaker": "NPC",
+      "text": "Hello!",
+      "options": [
+        {
+          "text": "Yes",
+          "conditions": [{ "type": "HasFlag", "params": { "flag": "met_npc" } }],
+          "effects": [{ "type": "SetFlag", "params": { "flag": "talked", "value": true } }]
+        }
+      ]
+    }
+  }
+}
+```
+
+触发方式：
+```gdscript
+EventBus.publish("StartDialogueTree", {"path": "res://dialogues/merchant.json"})
+```
+
+---
+
+## 13. v3.4 更新：运行时错误修复
+
+### 13.1 修复内容
+
+| 文件 | 问题 | 修复方式 |
+|------|------|----------|
+| `Grass.tscn` | 依赖 `Grass_Sway.gdshader` 缺失 | 从 thryzhn 复制 Shader 文件夹到 gambler |
+| `main_menu_controller.gd:58` | `SceneManager.change_scene()` 静态调用错误 | 改为 `get_tree().change_scene_to_file()` |
+| `CardSelector.gd:31,155` | `_available_cards` 变量未声明 | 添加 `var _available_cards: Array = []` |
+| `main.gd` (主菜单) | 主菜单启动时不加载音量设置 | 新增 `_load_settings_once()` 在 `_ready()` 时加载并应用设置 |
+
+### 13.2 设置系统
+
+**配置文件路径**: `user://settings.cfg`（`%APPDATA%/gambler/settings.cfg`）
+
+**默认音量**:
+| 设置项 | 默认值 | 范围 |
+|--------|--------|------|
+| BGM | 40% | 0-100% |
+| SFX | 70% | 0-100% |
+
+**加载时机**: 主菜单场景 `main.gd` 的 `_ready()` 时自动加载并应用（无需进入设置界面）
+
+### 13.3 待办
+
+- [ ] SceneRunnerV2 运行时编译错误排查（如仍有报错）
+- [ ] Settings 界面重构为独立场景，避免重复实例化 settingsManager
+
+---
+
+## 14. 已知问题 (v3.1)
+
+### 14.1 Godot 4 GDScript 类型限制
+
+Godot 4 GDScript 不支持 `Array[Type]` 写法，所有数组类型已改为无类型 `Array`。
+
+### 14.2 待集成
+
+- NarrativeEngine 需要与 DialogueSystem UI 深度集成
+- MapManager 尚未实现（区域配置、解锁、传送点）
+- QuestManager 尚未实现
+
+### 14.3 战斗系统说明
+
+- `BattleUI_v1.tscn` 可独立运行，自动初始化卡组
+- 完整战斗流程建议通过 `SceneRunnerV2` 协调

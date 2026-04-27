@@ -15,6 +15,7 @@ signal selection_changed(selected_ids: Array)
 signal selection_confirmed(selected_ids: Array)
 
 var _selected_ids: Array = []
+var _available_cards: Array = []
 
 var _disabled_ids: Array = []
 var _locked: bool = false

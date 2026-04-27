@@ -18,8 +18,14 @@ const OPTION_COUNT = 2
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	# 初始化箭头位置或其他初始化逻辑
+	_load_settings_once()
 	update_selection()
+
+func _load_settings_once() -> void:
+	var settings_manager = preload("res://scenes/Thryzhn/UI_Scenes/settings/gd/settingsManager.gd").new()
+	settings_manager.load_settings()
+	settings_manager.apply_settings()
+	settings_manager.free()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

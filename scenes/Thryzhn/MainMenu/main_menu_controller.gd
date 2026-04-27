@@ -55,7 +55,7 @@ func _handle_accept() -> void:
 
 func _start_game() -> void:
 	print("[MainMenu] Starting game")
-	SceneManager.change_scene("res://scenes/Thryzhn/TestScenes/cave/cave.tscn")
+	get_tree().change_scene_to_file("res://scenes/Thryzhn/TestScenes/cave/cave.tscn")
 
 func _open_settings() -> void:
 	print("[MainMenu] Opening settings")

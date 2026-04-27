@@ -24,6 +24,10 @@ DataManager="*res://scripts/autoload/DataManager.gd"
 CardMgr="*res://scripts/core/CardManager.gd"
 EventBus="*res://scripts/core/EventBus.gd"
 GameState="*res://scripts/core/GameStateManager.gd"
+WorldState="*res://scripts/world/WorldState.gd"
+SaveManager="*res://scripts/world/SaveManager.gd"
+MapManager="*res://scripts/world/MapManager.gd"
+QuestManager="*res://scripts/world/QuestManager.gd"
 SceneChanger="*res://scenes/Thryzhn/SceneChanger/Scene_Changer/scene_changer.tscn"
 
 [display]

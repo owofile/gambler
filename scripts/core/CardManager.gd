@@ -100,6 +100,10 @@ func get_card(instance_id: String) -> CardInstance:
 			return card
 	return null
 
+## Clears all cards from the deck (used for save/load).
+func clear_all_cards() -> void:
+	_player_deck.clear()
+
 
 func _create_card_instance(
 	prototype_id: String,
