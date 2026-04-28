@@ -78,6 +78,7 @@ func start_battle(player_deck: DeckSnapshot, enemy: EnemyData, config: BattleCon
 	_enemy = enemy
 	_config = config if config else _create_default_config(enemy)
 	_config.reset_deck_pointer()
+	_config.enable_card_consumption = false  # 强制禁用消耗，后续实现补牌机制后启用
 
 	_round_number = 0
 	_scores = [0, 0]
@@ -268,6 +269,11 @@ func _trigger_battle_end(result: BattleEnums.EBattleResult) -> void:
 	_battle_report.set_result(result)
 	_battle_report.set_player_wins(_scores[0])
 	_battle_report.set_enemy_wins(_scores[1])
+
+	# 清理状态
+	_selected_card_ids.clear()
+	_enemy_card_ids.clear()
+	_disabled_card_ids.clear()
 
 	print("[BattleFlow] ===== Battle End: %s =====" % BattleEnums.battle_result_to_string(result))
 	print("[BattleFlow] Final Score: %d-%d (%d rounds)" % [_scores[0], _scores[1], _round_number])

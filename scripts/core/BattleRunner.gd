@@ -26,6 +26,9 @@ func _ready() -> void:
 	_data_manager = get_node_or_null("/root/DataManager")
 
 func setup(battle_ui: Node, enemy: EnemyData) -> void:
+	# 清理之前的状态
+	_cleanup()
+
 	_battle_ui = battle_ui
 	_current_enemy = enemy
 	_player_score = 0
@@ -38,6 +41,11 @@ func setup(battle_ui: Node, enemy: EnemyData) -> void:
 	_setup_battle_flow()
 	_start_battle()
 	print("[BattleRunner] Setup complete with enemy: %s" % enemy.get_enemy_name())
+
+func _cleanup() -> void:
+	if _battle_flow:
+		_battle_flow.queue_free()
+		_battle_flow = null
 
 func _start_battle() -> void:
 	print("[BattleRunner] _start_battle() called")
@@ -93,14 +101,14 @@ func _on_round_info(scores: Array, round_num: int) -> void:
 
 func _on_battle_end(result: BattleEnums.EBattleResult, report: BattleReport) -> void:
 	_battle_in_progress = false
-	print("[BattleRunner] Battle ended: %s" % BattleEnums.battle_result_to_string(result))
+	print("[Runner] Battle ended: %s" % BattleEnums.battle_result_to_string(result))
 
 	if _battle_ui:
 		_battle_ui.enable_selection(false)
 
 	battle_ended.emit(result, report)
 
-	print("[BattleRunner] Returning to exploration...")
+	print("[Runner] Returning to exploration...")
 	get_tree().change_scene_to_file("res://scenes/Thryzhn/TestScenes/cave/cave/cave.tscn")
 
 func get_battle_flow() -> BattleFlow:
