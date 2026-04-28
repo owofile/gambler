@@ -50,6 +50,7 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 			tween.chain().tween_callback(func(): _remove_particle(particle))
 
 	var timer = _create_timer(particle_lifetime + 0.1)
+	timer.timeout.connect(_on_timer_complete)
 	timer.start()
 
 func _create_default_particle(color: Color) -> Node2D:

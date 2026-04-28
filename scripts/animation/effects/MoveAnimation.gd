@@ -21,8 +21,6 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 	var tween = target.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(target, "position", to_pos, duration).set_ease(ease_type)
-	tween.chain().tween_callback(func():
-		_on_complete.call()
-	)
+	tween.chain().tween_callback(_on_complete)
 
 	_is_playing = true

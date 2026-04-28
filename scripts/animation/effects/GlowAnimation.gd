@@ -24,6 +24,6 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 	tween.tween_property(target, "scale", Vector2(max_scale, max_scale), duration * 0.5)
 	tween.chain().tween_property(target, "modulate", original_modulate, duration * 0.5)
 	tween.chain().tween_property(target, "scale", Vector2(min_scale, min_scale), duration * 0.5)
-	tween.chain().tween_callback(func(): _on_complete.call())
+	tween.chain().tween_callback(_on_complete)
 
 	_is_playing = true

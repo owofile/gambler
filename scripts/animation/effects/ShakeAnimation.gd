@@ -28,6 +28,6 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 		tween.tween_property(target, "position", original_pos + Vector2(0, -offset.y), duration)
 		tween.tween_property(target, "position", original_pos, duration)
 
-	tween.chain().tween_callback(func(): _on_complete.call())
+	tween.chain().tween_callback(_on_complete)
 
 	_is_playing = true

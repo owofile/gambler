@@ -19,12 +19,11 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 	var original_pos = target.position
 
 	var tween = target.create_tween()
-	tween.set_parallel(true)
 
 	for i in range(loops):
 		tween.tween_property(target, "position", original_pos + Vector2(0, -bounce_height), duration)
 		tween.tween_property(target, "position", original_pos, duration)
 
-	tween.chain().tween_callback(func(): _on_complete.call())
+	tween.chain().tween_callback(_on_complete)
 
 	_is_playing = true
