@@ -22,6 +22,8 @@ signal mode_changed(from: GameMode, to: GameMode)
 var _current_mode: GameMode = GameMode.EXPLORATION
 var _previous_mode: GameMode = GameMode.EXPLORATION
 
+var battle_deck_policy: Script = NoConsumptionPolicy
+
 func _ready():
 	print("[GameState] Initialized at: %s" % get_path())
 

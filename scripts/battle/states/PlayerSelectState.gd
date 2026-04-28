@@ -15,7 +15,6 @@ func enter() -> void:
 	_core.notify_state_changed(_state_name)
 	_core.ui_show_hand(_core.get_player_hand())
 	_core.ui_enable_selection(true)
-	play_animation("show_hand")
 
 func exit() -> void:
 	pass
@@ -33,6 +32,3 @@ func on_player_confirm(cards: Array) -> void:
 	if cards.size() == _required_count:
 		_core.ui_show_selection_confirmed(cards)
 		_core.transition_to(EnemyRevealState)
-
-func on_animation_complete() -> void:
-	pass

@@ -26,6 +26,9 @@ const DEFAULT_MIN_DECK_SIZE := 3
 ## How many cards player must select per round
 @export var cards_per_round: int = DEFAULT_CARDS_PER_ROUND
 
+## How many cards to draw at battle start
+@export var initial_hand_size: int = 6
+
 ## How many consecutive draws before auto-breaking
 @export var draw_break_threshold: int = DEFAULT_DRAW_BREAK_THRESHOLD
 
@@ -34,6 +37,9 @@ const DEFAULT_MIN_DECK_SIZE := 3
 
 ## Enemy deck in fixed order (will cycle)
 @export var enemy_deck_order: Array = []
+
+## Enemy data reference
+var enemy_data: EnemyData = null
 
 ## Enemy deck pointer (current index when cycling)
 var _enemy_deck_index: int = 0
@@ -45,6 +51,10 @@ var _enemy_deck_index: int = 0
 ## Enable/disable specific mechanics
 @export var enable_card_consumption: bool = true
 @export var enable_buff_system: bool = false
+
+## Deck management policy (replaces enable_card_consumption)
+## Default: NoConsumptionPolicy (cards reused every round)
+var deck_policy: IDeckPolicy = NoConsumptionPolicy.new()
 
 func _init(
 	p_target_wins: int = DEFAULT_TARGET_WINS,
@@ -90,5 +100,8 @@ static func from_enemy_data(enemy: EnemyData) -> BattleConfig:
 			config.target_wins = 4
 		EnemyData.EnemyTier.Boss:
 			config.target_wins = 5
+	config.enemy_data = enemy
 	config.enemy_deck_order = enemy.get_deck_prototype_ids()
+	if GameState and GameState.battle_deck_policy:
+		config.deck_policy = GameState.battle_deck_policy.new()
 	return config

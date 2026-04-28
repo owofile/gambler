@@ -246,25 +246,76 @@ if consecutive_draws >= draw_break_threshold:
 
 ---
 
-## 7. 问题清单
+## 7. IDeckPolicy 牌组策略系统
+
+### 7.1 概述
+
+IDeckPolicy 是卡组管理的策略接口，替代原有的 `enable_card_consumption` 布尔开关，提供灵活的卡组消耗/补充机制。
+
+### 7.2 接口定义
+
+```gdscript
+class_name IDeckPolicy
+extends RefCounted
+
+signal deck_modified(new_size: int)
+signal battle_forced_end(reason: String)
+
+func on_battle_start(current_deck_size: int, cards_per_round: int) -> bool
+func on_round_start(current_deck_size: int, cards_per_round: int) -> Array
+func on_cards_played(played_card_ids: Array, current_deck_size: int) -> Array
+func can_continue_battle(current_deck_size: int, cards_per_round: int) -> bool
+func get_policy_name() -> String
+```
+
+### 7.3 内置策略
+
+| 策略 | 说明 |
+|------|------|
+| `NoConsumptionPolicy` | 卡牌不消耗，每回合重复使用（默认） |
+| `ConsumeWithDrawPolicy` | 出牌消耗，每回合开始时检查并补充 |
+| `ForceExitPolicy` | 出牌消耗，牌不足时强制退出战斗 |
+
+### 7.4 使用方式
+
+```gdscript
+# 方式1: 通过 BattleConfig 设置
+var config = BattleConfig.from_enemy_data(enemy)
+config.deck_policy = ConsumeWithDrawPolicy.new()
+
+# 方式2: 通过 GameState 全局设置（调试菜单）
+GameState.battle_deck_policy = ForceExitPolicy
+# 下场战斗自动使用该策略
+```
+
+### 7.5 调试菜单
+
+在调试菜单（F3）中可以选择消耗策略：
+- `NoConsumptionPolicy` - 无消耗（默认）
+- `ConsumeWithDrawPolicy` - 消耗+补牌
+- `ForceExitPolicy` - 消耗+强制退出
+
+---
+
+## 8. 问题清单
 
 | # | 问题 | 优先级 | 状态 |
 |---|------|--------|------|
-| 1 | `enable_card_consumption=false` 时仍可能执行消耗 | 高 | 待修复 |
-| 2 | 空牌/缺牌时卡死 | 高 | 待修复 |
+| 1 | `enable_card_consumption=false` 时仍可能执行消耗 | 高 | 已修复（IDeckPolicy） |
+| 2 | 空牌/缺牌时卡死 | 高 | 已修复（IDeckPolicy） |
 | 3 | `cards_confirmed` 信号重复发送 | 中 | 待排查 |
 | 4 | 战斗结束后 UI 未重置 | 中 | 待修复 |
-| 5 | 补牌机制缺失 | 高 | 待实现 |
+| 5 | 补牌机制缺失 | 高 | 已实现（IDeckPolicy） |
 | 6 | Buff/跨回合状态未实现 | 中 | 待实现 |
 | 7 | BOSS 多阶段机制未实现 | 低 | 后续 |
 
 ---
 
-## 8. 待办事项
+## 9. 待办事项
 
-- [ ] 修复消耗逻辑（enable_card_consumption 开关）
-- [ ] 实现补牌机制（每回合开始抽牌补充手牌）
-- [ ] 修复空牌检测流程
+- [x] 修复消耗逻辑（IDeckPolicy 策略系统）
+- [x] 实现补牌机制（IDeckPolicy 策略系统）
+- [x] 修复空牌检测流程（can_continue_battle）
 - [ ] 修复 UI 状态重置
 - [ ] 排查信号重复发送问题
 - [ ] 实现 Buff/跨回合状态系统

@@ -30,6 +30,7 @@ var _enemy_data: EnemyData = null
 var _player_wins: int = 0
 var _enemy_wins: int = 0
 var _round_count: int = 0
+var _max_rounds: int = 20
 
 func _ready() -> void:
 	print("========================================")
@@ -91,9 +92,11 @@ func _on_state_changed(state_name: String) -> void:
 			_process_player_selection()
 		"RoundEnd":
 			_process_round_end()
-		"Settlement":
-			pass
 		"EnemyReveal":
+			_process_enemy_reveal()
+		"Settlement":
+			_process_settlement()
+		"BattleEnd":
 			pass
 
 func _process_player_selection() -> void:
@@ -113,21 +116,35 @@ func _process_player_selection() -> void:
 	print("[BattleStressTest] Calling on_selection_confirmed with %d cards..." % selected_ids.size())
 	_battle_core.on_selection_confirmed(selected_ids)
 
+func _process_enemy_reveal() -> void:
+	var enemy_cards = _battle_core.get_current_enemy_cards()
+	print("[BattleStressTest] EnemyReveal - enemy cards: %s" % str(enemy_cards))
+
+func _process_settlement() -> void:
+	print("[BattleStressTest] Settlement - waiting for round result...")
+
 func _process_round_end() -> void:
 	_round_count += 1
 	var player_hand = _battle_core.get_player_hand()
+	var old_player_wins = _player_wins
+	var old_enemy_wins = _enemy_wins
+	_player_wins = _battle_core._player_wins
+	_enemy_wins = _battle_core._enemy_wins
+
 	print("[BattleStressTest] RoundEnd #%d - remaining cards: %d" % [_round_count, player_hand.size()])
 	print("[BattleStressTest]   Score: Player %d vs Enemy %d (target: %d)" % [
 		_player_wins, _enemy_wins, _config.target_wins])
 
-	if _battle_core._player_wins > _player_wins:
+	if _player_wins > old_player_wins:
 		print("[BattleStressTest]   >>> Player won this round!")
-		_player_wins = _battle_core._player_wins
-	elif _battle_core._enemy_wins > _enemy_wins:
+	elif _enemy_wins > old_enemy_wins:
 		print("[BattleStressTest]   >>> Enemy won this round!")
-		_enemy_wins = _battle_core._enemy_wins
 	else:
 		print("[BattleStressTest]   >>> Draw!")
+
+	if _round_count >= _max_rounds:
+		print("[BattleStressTest] MAX ROUNDS (%d) REACHED, forcing battle end!" % _max_rounds)
+		_battle_core.force_battle_end()
 
 func _on_battle_completed(result: int, report: BattleReport) -> void:
 	print("========================================")

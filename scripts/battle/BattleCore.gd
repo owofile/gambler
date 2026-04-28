@@ -126,6 +126,9 @@ func get_battle_result() -> int:
 		return BattleEnums.EBattleResult.Victory
 	return BattleEnums.EBattleResult.Defeat
 
+func force_battle_end() -> void:
+	transition_to(BattleEndState)
+
 func generate_report() -> BattleReport:
 	_battle_report.set_result(get_battle_result())
 	_battle_report.set_player_wins(_player_wins)

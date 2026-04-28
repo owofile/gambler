@@ -441,7 +441,26 @@ scripts/battle/
 
 ---
 
-## 14. 压力测试脚本 (BattleStressTest)
+## 14. 已修复的 Bug
+
+### 14.1 Stack Overflow in transition_to()
+- **问题**: `exit()` 调用 `ui_enable_selection(false)` → `_ui.enable_selection()` → 回调 `state_changed` → `transition_to()` → 循环
+- **修复**: BattleState `play_animation()` 使用 `call_deferred()` 延迟动画回调
+- **相关文件**: `BattleState.gd`, `PlayerSelectState.gd`, `EnemyRevealState.gd`, `SettlementState.gd`, `RoundEndState.gd`
+
+### 14.2 状态转换同步执行导致流程串行
+- **问题**: `enter()` 中直接调用 `_transition_to_next()` 导致所有状态在同一个调用栈执行完
+- **修复**: 使用 `call_deferred()` 延迟到下一帧执行
+- **相关文件**: 所有 State 类的 `on_animation_complete()`
+
+### 14.3 SettlementState 胜负判断错误
+- **问题**: `result.get("winner")` 返回 nil（BattleManager 不返回 winner 字段）
+- **修复**: SettlementState 自己比较 `_player_score` 和 `_enemy_score` 判断胜负
+- **相关文件**: `SettlementState.gd`
+
+---
+
+## 15. 压力测试脚本 (BattleStressTest)
 
 ### 14.1 用途
 直接测试 BattleCore API，绕过 UI 层，快速验证战斗逻辑。

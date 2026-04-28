@@ -17,12 +17,14 @@ Godot 4.3 卡牌对战游戏
 - [docs/RETROSPECTIVE.md](docs/RETROSPECTIVE.md) - 问题复盘与经验总结
 - [docs/TECH_REFERENCE.md](docs/TECH_REFERENCE.md) - 技术参考
 - [docs/BATTLE_FLOW_DESIGN.md](docs/BATTLE_FLOW_DESIGN.md) - 战斗流程设计
+- [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md) - **战斗系统 V2（状态机架构）**
 
 ## 核心功能
 
 | 模块 | 状态 | 说明 |
 |------|------|------|
 | 卡牌战斗 | ✅ | 完整战斗流程、选牌、比大小 |
+| **Battle System V2** | ✅ | 状态机架构、模块化设计、压力测试通过 |
 | 卡牌背包 | ✅ | CardMgr 管理，最多20张 |
 | 存档系统 | ✅ | SaveManager + WorldState |
 | 对话系统 | ✅ | NarrativeEngine + DialogueSystem |
@@ -30,17 +32,37 @@ Godot 4.3 卡牌对战游戏
 | 特效系统 | 🔨 | 设计文档完成，待实现 |
 | 物品背包 | 🔜 | 计划中 |
 
+## Battle System V2
+
+新版战斗系统使用状态机架构，参考 [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md)
+
+### 状态流转
+```
+PlayerSelect → EnemyReveal → Settlement → RoundEnd
+                                          ↓
+                              (循环或 BattleEnd)
+```
+
+### 压力测试
+运行 `scenes/battle/BattleStressTest.tscn` 测试战斗系统 API
+
+### 已修复问题
+- Stack overflow in transition_to()
+- 状态转换同步执行导致流程串行
+- SettlementState 胜负判断错误
+
 ## 代码统计
 
 | 语言 | 文件 | 行数 |
 |------|------|------|
-| GDScript | 78 | 6,257 |
-| TSCN | 17 | 2,264 |
+| GDScript | 78+ | 6,257+ |
+| TSCN | 17+ | 2,264+ |
 | JSON | 5 | 394 |
-| **合计** | **100** | **8,915** |
+| **合计** | **100+** | **8,915+** |
 
 ## 版本
 
+- **v5.0**: Battle System V2 状态机架构完成、压力测试通过
 - **v4.1**: InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复
 - **v4.0**: 新增调试菜单、卡牌背包系统、存档系统重构
 - v3.5: 新增卡牌特效系统设计文档（EFFECTS_SYSTEM.md）

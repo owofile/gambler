@@ -3,14 +3,14 @@
 ## Responsibility:
 ## - Manage 6-phase battle flow (PLAYER_SELECT → ENEMY_REVEAL → SETTLE → CONSUME → ROUND_END → CHECK)
 ## - Coordinate between player selection, animations, and battle calculation
-## - Handle card consumption, cross-turn state, and battle end
+## - Handle card consumption via IDeckPolicy, cross-turn state, and battle end
 ## - Provide empty deck protection
 ##
 ## 6-Phase Flow:
 ##   1. PLAYER_SELECT: Player selects cards
 ##   2. ENEMY_REVEAL: Enemy cards revealed
 ##   3. SETTLE: Calculate results with effects
-##   4. CONSUME: Consume played cards
+##   4. CONSUME: Consume played cards (handled by IDeckPolicy)
 ##   5. ROUND_END: Clean up and prepare next round
 ##   6. CHECK: Check for battle end
 ##
@@ -36,6 +36,7 @@ enum Phase {
 signal phase_changed(new_phase: Phase)
 signal battle_end(result: int, report: BattleReport)
 signal round_info(scores: Array, round_num: int)
+signal round_start(round_num: int)
 
 var _current_phase: Phase = Phase.INVALID
 var _card_manager: Node = null
@@ -78,7 +79,13 @@ func start_battle(player_deck: DeckSnapshot, enemy: EnemyData, config: BattleCon
 	_enemy = enemy
 	_config = config if config else _create_default_config(enemy)
 	_config.reset_deck_pointer()
-	_config.enable_card_consumption = false  # 强制禁用消耗，后续实现补牌机制后启用
+
+	# Use deck policy to check if battle can start
+	var current_deck_size = _card_manager.get_deck_size() if _card_manager else 0
+	if not _config.deck_policy.on_battle_start(current_deck_size, _config.cards_per_round):
+		push_error("[BattleFlow] Battle start rejected by deck policy: %s" % _config.deck_policy.get_policy_name())
+		_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
+		return
 
 	_round_number = 0
 	_scores = [0, 0]
@@ -109,7 +116,6 @@ func _set_phase(new_phase: Phase) -> void:
 		return
 	_current_phase = new_phase
 	phase_changed.emit(new_phase)
-	print("[BattleFlow] Phase: %s" % _get_phase_name(new_phase))
 
 func _get_phase_name(phase: Phase) -> String:
 	match phase:
@@ -126,15 +132,11 @@ func _get_phase_name(phase: Phase) -> String:
 ## Confirm player's card selection
 func confirm_selection(card_instance_ids: Array) -> void:
 	if _current_phase != Phase.PLAYER_SELECT:
-		push_warning("[BattleFlow] Cannot confirm selection in phase: %s" % _get_phase_name(_current_phase))
 		return
-
 	if card_instance_ids.size() != _config.cards_per_round:
-		push_warning("[BattleFlow] Must select exactly %d cards, got %d" % [_config.cards_per_round, card_instance_ids.size()])
 		return
 
 	_selected_card_ids = card_instance_ids
-	print("[BattleFlow] Player selected %d cards" % _selected_card_ids.size())
 
 	_publish("Flow_PlayerSelectionConfirmed", {"cards": _selected_card_ids})
 	_set_phase(Phase.ENEMY_REVEAL)
@@ -150,11 +152,17 @@ func cancel_selection() -> void:
 func _start_round() -> void:
 	_round_number += 1
 	_cross_turn_state.process_round_start()
-	print("[BattleFlow] ===== Round %d Start =====" % _round_number)
+
+	var current_deck_size = _card_manager.get_deck_size() if _card_manager else 0
+	var cards_to_add = _config.deck_policy.on_round_start(current_deck_size, _config.cards_per_round)
+	if cards_to_add.size() > 0:
+		for card_id in cards_to_add:
+			_card_manager.add_card(card_id)
+
+	round_start.emit(_round_number)
 
 func _execute_enemy_reveal() -> void:
 	_enemy_card_ids = _config.get_enemy_cards(_config.cards_per_round)
-	print("[BattleFlow] Enemy reveals: %s" % _enemy_card_ids)
 
 	_publish("Flow_EnemyCardReveal", {
 		"cards": _enemy_card_ids,
@@ -224,10 +232,11 @@ func _calculate_round_result() -> int:
 	return 0
 
 func _execute_consume() -> void:
-	print("[BattleFlow] _execute_consume called. enable_card_consumption=", _config.enable_card_consumption)
-	if _config.enable_card_consumption:
-		var consumed = _card_consumer.consume_played_cards(_selected_card_ids, _disabled_card_ids)
-		print("[BattleFlow] Consumed %d cards" % consumed.size())
+	var deck_size = _card_manager.get_deck_size() if _card_manager else 0
+	var cards_to_consume = _config.deck_policy.on_cards_played(_selected_card_ids, deck_size)
+
+	if cards_to_consume.size() > 0:
+		var consumed = _card_consumer.consume_played_cards(cards_to_consume, _disabled_card_ids)
 		for card_id in consumed:
 			_battle_report.add_card_to_remove(card_id)
 
@@ -249,16 +258,14 @@ func _execute_round_end() -> void:
 	_check_battle_end()
 
 func _check_battle_end() -> void:
-	print("[BattleFlow] _check_battle_end: scores=%s target=%d" % [_scores, _config.target_wins])
 	if _scores[0] >= _config.target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Victory)
 	elif _scores[1] >= _config.target_wins:
 		_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 	else:
 		var deck_size = _card_manager.get_deck_size() if _card_manager else 0
-		print("[BattleFlow] deck_size=%d cards_per_round=%d" % [deck_size, _config.cards_per_round])
-		if deck_size < _config.cards_per_round:
-			push_warning("[BattleFlow] Player has only %d cards, need %d. Forfeiting." % [deck_size, _config.cards_per_round])
+		if not _config.deck_policy.can_continue_battle(deck_size, _config.cards_per_round):
+			push_warning("[BattleFlow] Deck policy '%s' says cannot continue. Forfeiting." % _config.deck_policy.get_policy_name())
 			_trigger_battle_end(BattleEnums.EBattleResult.Defeat)
 		else:
 			_set_phase(Phase.PLAYER_SELECT)

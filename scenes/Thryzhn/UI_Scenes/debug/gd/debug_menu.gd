@@ -4,8 +4,9 @@ const OPTION_SAVE := 0
 const OPTION_LOAD := 1
 const OPTION_ADD_CARD := 2
 const OPTION_SHOW_INVENTORY := 3
-const OPTION_BACK := 4
-const OPTION_COUNT := 5
+const OPTION_DECK_POLICY := 4
+const OPTION_BACK := 5
+const OPTION_COUNT := 6
 
 const INPUT_DELAY := 0.2
 
@@ -19,7 +20,8 @@ const NORMAL_COLOR := Color(0.7, 0.7, 0.7, 1.0)
 	$Panel/VBox/Options/Option1,
 	$Panel/VBox/Options/Option2,
 	$Panel/VBox/Options/Option3,
-	$Panel/VBox/Options/Option4
+	$Panel/VBox/Options/Option4,
+	$Panel/VBox/Options/Option5
 ]
 @onready var inventory_panel: ColorRect = $Panel/InventoryPanel
 @onready var inventory_label: Label = $Panel/InventoryPanel/InventoryScroll/InventoryLabel
@@ -27,6 +29,13 @@ const NORMAL_COLOR := Color(0.7, 0.7, 0.7, 1.0)
 var _current_selection: int = 0
 var _input_cooldown: float = 0.0
 var _inventory_visible: bool = false
+var _deck_policy_index: int = 0
+
+var DECK_POLICIES: Array = [
+	NoConsumptionPolicy,
+	ConsumeWithDrawPolicy,
+	ForceExitPolicy
+]
 
 func _ready() -> void:
 	_update_all()
@@ -78,6 +87,8 @@ func _get_option_text(index: int) -> String:
 			return "添加随机卡牌"
 		OPTION_SHOW_INVENTORY:
 			return "显示背包"
+		OPTION_DECK_POLICY:
+			return "消耗策略: " + _get_deck_policy_name(_deck_policy_index)
 		OPTION_BACK:
 			return "返回"
 	return ""
@@ -92,6 +103,8 @@ func _handle_accept() -> void:
 			_add_random_card()
 		OPTION_SHOW_INVENTORY:
 			_show_inventory()
+		OPTION_DECK_POLICY:
+			_cycle_deck_policy()
 		OPTION_BACK:
 			_back()
 
@@ -131,6 +144,19 @@ func _update_inventory_display() -> void:
 		for card in all_cards:
 			text += "- %s\n" % card.get_prototype_id()
 	inventory_label.text = text
+
+func _get_deck_policy_name(index: int) -> String:
+	if index >= 0 and index < DECK_POLICIES.size():
+		var policy = DECK_POLICIES[index].new()
+		return policy.get_policy_name()
+	return "Unknown"
+
+func _cycle_deck_policy() -> void:
+	_deck_policy_index = (_deck_policy_index + 1) % DECK_POLICIES.size()
+	var policy_class = DECK_POLICIES[_deck_policy_index]
+	GameState.battle_deck_policy = policy_class
+	print("[DebugMenu] Deck policy set to: ", _get_deck_policy_name(_deck_policy_index))
+	_update_selection_display()
 
 func _update_all() -> void:
 	var save_info = SaveManager.get_last_save_info()

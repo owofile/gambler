@@ -1,4 +1,4 @@
-extends Node2D
+﻿extends Node2D
 
 signal cards_confirmed(selected_ids: Array)
 
@@ -180,7 +180,7 @@ func _show_card_info(index: int) -> void:
 	if prototype.effect_ids.size() > 0:
 		info_text += "\n[color=yellow]Effects:[/color]"
 		for effect_id in prototype.effect_ids:
-			info_text += "\n  [color=cyan]• %s[/color]" % effect_id
+			info_text += "\n  [color=cyan]鈥?%s[/color]" % effect_id
 
 	if prototype.cost_id != "":
 		info_text += "\n[color=yellow]Cost:[/color] [color=red]%s[/color]" % prototype.cost_id
@@ -224,6 +224,7 @@ func _format_card_name(prototype_id: String) -> String:
 	return formatted.strip_edges()
 
 func _on_card_clicked(index: int) -> void:
+	print("[BattleUI_v1] _on_card_clicked: index=%d, _selection_enabled=%s" % [index, _selection_enabled])
 	if not _selection_enabled:
 		return
 	if index < 0 or index >= _card_nodes.size():
@@ -268,7 +269,6 @@ func setup_battle(enemy: EnemyData) -> void:
 			_target_wins = 3
 
 	_current_score = [0, 0]
-	print("[BattleUI_v1] setup_battle: %s (target: %d wins)" % [enemy.get_enemy_name(), _target_wins])
 	_do_refresh_hand()
 	enable_selection(true)
 
@@ -329,7 +329,13 @@ func _set_card_selected(index: int, selected: bool) -> void:
 			sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _on_playcard_pressed() -> void:
+	if not _selection_enabled:
+		return
 	if _selected_indices.is_empty():
+		return
+
+
+	if playcard_btn.disabled:
 		return
 
 	var selected_ids: Array = []
@@ -339,14 +345,20 @@ func _on_playcard_pressed() -> void:
 			if card:
 				selected_ids.append(card.get_card_id())
 
-	print("[BattleUI_v1] Confirming %d cards: %s" % [selected_ids.size(), selected_ids])
+	if selected_ids.size() == 0:
+		return
+
+	print("[BattleUI_v1] Confirming %d cards" % selected_ids.size())
 	emit_signal("cards_confirmed", selected_ids)
 
-	enable_selection(false)
+	_selection_enabled = false
+	playcard_btn.disabled = true
 
 func enable_selection(enabled: bool) -> void:
 	_selection_enabled = enabled
-	if not enabled:
+	if enabled:
+		playcard_btn.disabled = false
+	else:
 		_hovered_index = -1
 		_hide_card_info()
 
@@ -375,36 +387,27 @@ func _on_flow_battle_start(payload) -> void:
 	var enemy = payload.get("enemy", null)
 	if enemy:
 		setup_battle(enemy)
-	print("[BattleUI_v1] Flow: BattleStart")
 
 func _on_flow_player_selecting(payload) -> void:
 	enable_selection(true)
-	print("[BattleUI_v1] Flow: PlayerSelecting")
 
 func _on_flow_player_card_anim_start(payload) -> void:
-	print("[BattleUI_v1] Flow: PlayerCardAnimStart")
+	pass
 
 func _on_flow_player_card_anim_end(payload) -> void:
-	print("[BattleUI_v1] Flow: PlayerCardAnimEnd")
+	pass
 
 func _on_flow_enemy_card_reveal(payload) -> void:
-	var card_id = payload.get("card_id", "")
-	print("[BattleUI_v1] Flow: EnemyCardReveal - %s" % card_id)
+	pass
 
 func _on_flow_compare_start(payload) -> void:
-	var player_cards = payload.get("player_cards", [])
-	var enemy_cards = payload.get("enemy_cards", [])
-	var player_total = payload.get("player_total", 0)
-	var enemy_total = payload.get("enemy_total", 0)
-	print("[BattleUI_v1] Flow: CompareStart - Player: %s vs Enemy: %s" % [player_cards, enemy_cards])
-	print("[BattleUI_v1] Flow: CompareStart - Player: %d vs Enemy: %d" % [player_total, enemy_total])
+	pass
 
 func _on_flow_round_end(payload) -> void:
 	var winner = payload.get("winner", "draw")
 	var scores_arr: Array = payload.get("scores", [0, 0])
 	var score0 = scores_arr[0] if scores_arr.size() > 0 else 0
 	var score1 = scores_arr[1] if scores_arr.size() > 1 else 0
-	print("[BattleUI_v1] Flow: RoundEnd - %s wins! Score: %d-%d" % [winner, score0, score1])
 	_current_score[0] = score0
 	_current_score[1] = score1
 	clear_selection()
@@ -412,7 +415,6 @@ func _on_flow_round_end(payload) -> void:
 func _on_flow_battle_end(payload) -> void:
 	var result = payload.get("result", 0)
 	var result_str = "Victory" if result == 1 else "Defeat"
-	print("[BattleUI_v1] Flow: BattleEnd - %s" % result_str)
 	print("Battle ended: %s" % result_str)
 
 func on_battle_complete(report: BattleReport) -> void:
@@ -420,7 +422,6 @@ func on_battle_complete(report: BattleReport) -> void:
 	print("==========")
 	print("BATTLE ENDED: %s" % result_str)
 	print("Final Score: Player %d - %d Enemy" % [report.get_player_wins(), report.get_enemy_wins()])
-	print("Rounds played: %d" % report.get_total_rounds())
 	print("==========")
 
 func _on_card_sel_changed(payload) -> void:
@@ -433,15 +434,3 @@ func _on_battle_ended(result: int, report: BattleReport) -> void:
 
 func get_selected_indices() -> Array:
 	return _selected_indices.duplicate()
-
-
-func _on_user_card_card_hovered(index: int) -> void:
-	pass # Replace with function body.
-
-
-func _on_user_card_card_clicked(index: int) -> void:
-	pass # Replace with function body.
-
-
-func _on_user_card_card_unhovered(index: int) -> void:
-	pass # Replace with function body.

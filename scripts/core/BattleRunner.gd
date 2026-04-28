@@ -79,6 +79,7 @@ func _setup_battle_flow() -> void:
 	_battle_flow.initialize(_card_manager, _data_manager, get_node_or_null("/root/EventBus"))
 	_battle_flow.battle_end.connect(_on_battle_end)
 	_battle_flow.round_info.connect(_on_round_info)
+	_battle_flow.round_start.connect(_on_round_start)
 	add_child(_battle_flow)
 
 func _on_cards_confirmed(selected_ids: Array) -> void:
@@ -88,8 +89,6 @@ func _on_cards_confirmed(selected_ids: Array) -> void:
 		return
 
 	_battle_in_progress = true
-	print("[BattleRunner] Cards confirmed: %d" % selected_ids.size())
-
 	if _battle_flow:
 		_battle_flow.confirm_selection(selected_ids)
 
@@ -99,9 +98,15 @@ func _on_round_info(scores: Array, round_num: int) -> void:
 		_enemy_score = scores[1]
 		print("[BattleRunner] Round %d: Player %d vs Enemy %d" % [round_num, _player_score, _enemy_score])
 
+func _on_round_start(round_num: int) -> void:
+	_battle_in_progress = false
+	if _battle_ui:
+		_battle_ui.refresh_hand()
+		_battle_ui.enable_selection(true)
+	print("[BattleRunner] Round %d started" % round_num)
+
 func _on_battle_end(result: BattleEnums.EBattleResult, report: BattleReport) -> void:
 	_battle_in_progress = false
-	print("[Runner] Battle ended: %s" % BattleEnums.battle_result_to_string(result))
 
 	if _battle_ui:
 		_battle_ui.enable_selection(false)
