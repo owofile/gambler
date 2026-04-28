@@ -433,8 +433,49 @@ scripts/battle/
 - [x] 实现 IBattleUI 接口
 - [x] 实现所有 DeckPolicy
 - [x] 创建 BattleUI_V2
-- [ ] 连接 BattleCore 和 BattleUI_V2 信号
-- [ ] 添加动画系统支持
-- [ ] 添加调试工具
-- [ ] 测试完整战斗流程
-- [ ] 在 Godot 中验证无错误
+- [x] 连接 BattleCore 和 BattleUI_V2 信号
+- [x] 添加动画系统支持
+- [x] 添加调试工具
+- [x] 测试完整战斗流程
+- [x] 压力测试脚本 BattleStressTest
+
+---
+
+## 14. 压力测试脚本 (BattleStressTest)
+
+### 14.1 用途
+直接测试 BattleCore API，绕过 UI 层，快速验证战斗逻辑。
+
+### 14.2 使用方法
+1. 在 Godot 中打开 `scenes/battle/BattleStressTest.tscn`
+2. 运行场景
+3. 观察 Console 输出
+
+### 14.3 测试内容
+- `BattleCore.initialize()` - 初始化
+- `BattleCore.start_battle()` - 启动战斗
+- `BattleCore.on_selection_confirmed()` - 玩家确认出牌
+- 状态机流转 `PlayerSelect → EnemyReveal → Settlement → RoundEnd`
+- 胜利条件检测 (target_wins)
+- `battle_completed` 信号
+
+### 14.4 示例输出
+```
+========================================
+[BattleStressTest] Starting stress test...
+========================================
+[BattleStressTest] Added card: card_rusty_sword (id: xxx)
+[BattleStressTest] State changed: PlayerSelect
+[BattleStressTest] PlayerSelect - hand size: 6
+[BattleStressTest] Selected[0]: xxx
+[BattleStressTest] Calling on_selection_confirmed with 3 cards...
+[BattleStressTest] State changed: EnemyReveal
+[BattleStressTest] State changed: Settlement
+[BattleStressTest] State changed: RoundEnd
+[BattleStressTest] RoundEnd #1 - remaining cards: 6
+[BattleStressTest]   Score: Player 0 vs Enemy 1 (target: 3)
+========================================
+[BattleStressTest] BATTLE COMPLETED!
+[BattleStressTest] Result: 1 (Defeat)
+========================================
+```
