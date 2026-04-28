@@ -48,6 +48,7 @@
 | [EFFECTS_SYSTEM.md](./EFFECTS_SYSTEM.md) | 特效系统设计文档 |
 | [SAVE_SYSTEM.md](./SAVE_SYSTEM.md) | 存档系统设计文档 |
 | [RETROSPECTIVE.md](./RETROSPECTIVE.md) | 问题复盘、经验总结 |
+| [ANIMATION_SYSTEM_DESIGN.md](./ANIMATION_SYSTEM_DESIGN.md) | 动画系统设计文档 |
 
 ---
 
@@ -76,6 +77,6 @@
 
 | 日期 | 描述 |
 |------|------|
-| 2026-04-28 | 新增 BATTLE_SYSTEM_V2.md (v2.1)、CARD_SYSTEM_V2.md |
+| 2026-04-28 | 新增 BATTLE_SYSTEM_V2.md (v2.1)、CARD_SYSTEM_V2.md、ANIMATION_SYSTEM_DESIGN.md |
 | 2026-04-25 | 新增 BattleUI_v1 场景文档 |
 | 2026-04-24 | 初始项目文档结构 |
