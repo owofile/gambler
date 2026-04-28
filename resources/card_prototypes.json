@@ -4,125 +4,161 @@
 		"base_value": 7,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "res://assets/cards/textures/lain_test.png",
+		"display_name": "锈剑"
 	},
 	"card_ancient_shield": {
 		"card_class": "Artifact",
 		"base_value": 5,
 		"effect_ids": ["fixed_bonus_2"],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "res://assets/cards/textures/lain_test.png",
+		"display_name": "古盾"
 	},
 	"card_cursed_amulet": {
 		"card_class": "Artifact",
 		"base_value": 9,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": false
+		"is_lockable": false,
+		"texture": "res://assets/cards/textures/lain_test.png",
+		"display_name": "诅咒护符"
 	},
 	"card_friendly_spirit": {
 		"card_class": "Creature",
 		"base_value": 4,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "res://assets/cards/textures/lain_test.png",
+		"display_name": "友灵"
 	},
 	"card_wild_beast": {
 		"card_class": "Creature",
 		"base_value": 6,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "野兽"
 	},
 	"card_minion": {
 		"card_class": "Creature",
 		"base_value": 3,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "仆从"
 	},
 	"card_justice": {
 		"card_class": "Concept",
 		"base_value": 5,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "正义"
 	},
 	"card_freedom": {
 		"card_class": "Concept",
 		"base_value": 2,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "自由"
 	},
 	"card_hope": {
 		"card_class": "Concept",
 		"base_value": 7,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "希望"
 	},
 	"card_blood_oath": {
 		"card_class": "Bond",
 		"base_value": 3,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "血誓"
 	},
 	"card_familial_bond": {
 		"card_class": "Bond",
 		"base_value": 4,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "家庭纽带"
 	},
 	"card_sworn_enemy": {
 		"card_class": "Bond",
 		"base_value": 2,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "世仇"
 	},
 	"card_vengeance": {
 		"card_class": "Sin",
 		"base_value": 8,
 		"effect_ids": [],
 		"cost_id": "self_destroy",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "复仇"
 	},
 	"card_gluttony": {
 		"card_class": "Sin",
 		"base_value": 6,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "暴食"
 	},
 	"card_greed": {
 		"card_class": "Sin",
 		"base_value": 10,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "贪婪"
 	},
 	"card_kings_authority": {
 		"card_class": "Authority",
 		"base_value": 8,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "王权"
 	},
 	"card_judgment": {
 		"card_class": "Authority",
 		"base_value": 5,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "审判"
 	},
 	"card_decree": {
 		"card_class": "Authority",
 		"base_value": 4,
 		"effect_ids": [],
 		"cost_id": "",
-		"is_lockable": true
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "法令"
 	}
 }

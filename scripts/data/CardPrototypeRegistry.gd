@@ -49,7 +49,9 @@ func _parse_prototypes(data: Dictionary) -> void:
 			proto_dict.get("base_value", 0),
 			effects_str,
 			proto_dict.get("cost_id", ""),
-			proto_dict.get("is_lockable", true)
+			proto_dict.get("is_lockable", true),
+			proto_dict.get("texture", ""),
+			proto_dict.get("display_name", "")
 		)
 		_prototypes[key] = proto
 

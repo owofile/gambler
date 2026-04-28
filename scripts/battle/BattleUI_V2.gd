@@ -49,7 +49,7 @@ func initialize(core: BattleCore) -> void:
 		_core.animation_requested.connect(_on_animation_requested)
 
 func _setup_ui_elements() -> void:
-	_screen_size = get_viewport_rect().size
+	_screen_size = get_viewport().get_visible_rect().size
 
 	var panel = ColorRect.new()
 	panel.color = Color(0.1, 0.1, 0.2, 0.9)
@@ -139,9 +139,10 @@ func _create_card_widgets() -> void:
 			card.get_prototype_id(),
 			card.get_card_id(),
 			card_info.value,
-			card_info.name,
+			card_info.display_name,
 			card_info.card_class,
-			card_info.effects
+			card_info.effects,
+			card_info.texture
 		)
 		widget.card_clicked.connect(_on_card_widget_clicked.bind(i))
 		widget.card_hovered.connect(_on_card_hovered)
@@ -152,7 +153,7 @@ func _create_card_widgets() -> void:
 		_card_widgets.append(widget)
 
 func _get_card_full_info(card: CardInstance) -> Dictionary:
-	var info = {"value": 0, "name": "", "card_class": "", "effects": ""}
+	var info = {"value": 0, "name": "", "card_class": "", "effects": "", "texture": "", "display_name": ""}
 
 	if not _data_manager:
 		print("[DEBUG] _data_manager is null")
@@ -165,10 +166,12 @@ func _get_card_full_info(card: CardInstance) -> Dictionary:
 
 	info.value = card.get_total_value(prototype)
 	info.name = prototype.prototype_id
+	info.display_name = prototype.display_name if not prototype.display_name.is_empty() else prototype.prototype_id
 	info.card_class = CardData.class_name_to_string(prototype.card_class)
 	info.effects = ", ".join(prototype.effect_ids) if not prototype.effect_ids.is_empty() else ""
+	info.texture = prototype.texture_path
 
-	print("[DEBUG] card info - value=%d, name=%s, class=%s" % [info.value, info.name, info.card_class])
+	print("[DEBUG] card info - value=%d, name=%s, display_name=%s, texture=%s" % [info.value, info.name, info.display_name, info.texture])
 	return info
 
 func _clear_card_widgets() -> void:

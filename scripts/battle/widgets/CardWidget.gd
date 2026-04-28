@@ -12,6 +12,7 @@ signal card_unhovered(card_id: String)
 @export var card_name: String = ""
 @export var card_class: String = ""
 @export var card_effects: String = ""
+@export var texture_path: String = ""
 
 var _is_selected: bool = false
 var _is_hovered: bool = false
@@ -41,24 +42,26 @@ func _ready() -> void:
 	_hover_effects = get_node_or_null("HoverInfo/VBox/EffectsLabel")
 	_is_enabled = true
 
-	_update_display()  # Update display when nodes are ready
+	_update_display()
 
 	print("[CardWidget] Ready - card_id=%s, prototype_id=%s" % [card_id, prototype_id])
 
-func setup(proto_id: String, instance_id: String, value: int, name: String = "", card_class_name: String = "", effects: String = "") -> void:
+func setup(proto_id: String, instance_id: String, value: int, name: String = "", card_class_name: String = "", effects: String = "", texture: String = "") -> void:
 	prototype_id = proto_id
 	card_id = instance_id
 	card_value = value
 	card_name = name
 	card_class = card_class_name
 	card_effects = effects
+	texture_path = texture
+	_apply_texture()
 
 	if _value_label != null:
 		_update_display()
 	else:
 		print("[DEBUG] setup called before _ready(), will update later")
 
-	print("[CardWidget] Setup - id=%s, value=%d, name=%s" % [instance_id, value, name])
+	print("[CardWidget] Setup - id=%s, value=%d, name=%s, texture=%s" % [instance_id, value, name, texture])
 
 func _get_animation_registry() -> Node:
 	if _animation_registry == null:
@@ -69,6 +72,24 @@ func _get_animation_registry() -> Node:
 			_animation_registry.name = "AnimationRegistry"
 			get_tree().root.add_child(_animation_registry)
 	return _animation_registry
+
+func _apply_texture() -> void:
+	if not _sprite:
+		_sprite = get_node_or_null("CardContainer/Sprite")
+	if not _sprite:
+		return
+
+	if not texture_path.is_empty() and ResourceLoader.exists(texture_path):
+		var tex = load(texture_path)
+		if tex:
+			_sprite.texture = tex
+			return
+
+	var fallback = "res://assets/cards/textures/default.png"
+	if ResourceLoader.exists(fallback):
+		_sprite.texture = load(fallback)
+	else:
+		print("[CardWidget] No texture for %s, no fallback available" % prototype_id)
 
 func play_animation(event_name: String, on_complete: Callable = Callable()) -> void:
 	var registry = _get_animation_registry()
@@ -153,7 +174,6 @@ func _on_mouse_entered() -> void:
 	_is_hovered = true
 	_modulate_by_state()
 	_show_hover_info(true)
-	# play_animation("hover")
 	card_hovered.emit(card_id)
 
 func _on_mouse_exited() -> void:

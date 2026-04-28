@@ -49,6 +49,7 @@
 | [SAVE_SYSTEM.md](./SAVE_SYSTEM.md) | 存档系统设计文档 |
 | [RETROSPECTIVE.md](./RETROSPECTIVE.md) | 问题复盘、经验总结 |
 | [ANIMATION_SYSTEM_DESIGN.md](./ANIMATION_SYSTEM_DESIGN.md) | 动画系统设计文档 |
+| [CARD_ADDING_GUIDE.md](./CARD_ADDING_GUIDE.md) | 卡牌添加指南 |
 
 ---
 
