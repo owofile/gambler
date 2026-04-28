@@ -33,7 +33,7 @@ func _ready() -> void:
 	mouse_exited.connect(_on_mouse_exited)
 
 	_sprite = get_node_or_null("CardContainer/Sprite")
-	_value_label = get_node_or_null("BottomArea/ValueLabel")
+	_value_label = get_node_or_null("ValueLabel")
 	_hover_info = get_node_or_null("HoverInfo")
 	_hover_name = get_node_or_null("HoverInfo/VBox/NameLabel")
 	_hover_value = get_node_or_null("HoverInfo/VBox/ValueInfoLabel")
@@ -146,7 +146,7 @@ func _on_mouse_entered() -> void:
 	_is_hovered = true
 	_modulate_by_state()
 	_show_hover_info(true)
-	play_animation("hover")
+	# play_animation("hover")
 	card_hovered.emit(card_id)
 
 func _on_mouse_exited() -> void:
