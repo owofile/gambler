@@ -155,6 +155,8 @@ func apply_settlement_cards() -> void:
 	for proto_id in _settlement_cards_to_add:
 		var added = _card_manager.add_card(proto_id)
 		print("[BattleCore] Settlement card added: %s" % proto_id)
+
+func clear_settlement_cards() -> void:
 	_settlement_cards_to_remove.clear()
 	_settlement_cards_to_add.clear()
 

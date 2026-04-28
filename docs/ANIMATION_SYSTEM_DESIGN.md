@@ -390,6 +390,81 @@ reg.get_animation_names()  # -> Array
 | particle | ParticleAnimation | 粒子效果 |
 | sequential | SequentialAnimation | 顺序播放 |
 | parallel | ParallelAnimation | 并行播放 |
+| fade_destroy | FadeDestroyAnimation | 淡出销毁 |
+| shrink_destroy | ShrinkDestroyAnimation | 缩放销毁 |
+| shake_destroy | ShakeDestroyAnimation | 震动销毁 |
+
+---
+
+### 5.8 销毁动画族 - Card Destruction Effects
+
+**效果**: 卡牌销毁时播放的特殊效果动画
+
+#### 5.8.1 FadeDestroyAnimation - 淡出销毁
+
+**文件**: `scripts/animation/effects/FadeDestroyAnimation.gd`
+
+**效果**: 淡出 + 缩小 → 销毁
+
+```gdscript
+config = {
+    "duration": 0.4,        # 总时长（默认 0.4）
+    "fade_delay": 0.0,      # 开始淡出延迟（默认 0.0）
+    "shrink_scale": 0.1     # 最终缩放值（默认 0.1）
+}
+```
+
+**实现原理**:
+```
+tween: scale → shrink_scale, duration * 0.6, EASE_OUT
+tween: modulate:a → 0, duration * 0.4 (延迟 fade_delay)
+callback
+```
+
+#### 5.8.2 ShrinkDestroyAnimation - 缩放销毁
+
+**文件**: `scripts/animation/effects/ShrinkDestroyAnimation.gd`
+
+**效果**: 快速缩小 → 淡出 → 销毁
+
+```gdscript
+config = {
+    "duration": 0.3,        # 总时长（默认 0.3）
+    "shrink_scale": 0.0,    # 最终缩放值（默认 0.0）
+    "shrink_ease": EASE_IN  # 缓动类型（默认 EASE_IN）
+}
+```
+
+**实现原理**:
+```
+tween: scale → shrink_scale, duration, shrink_ease
+tween: modulate:a → 0, duration * 0.5
+callback
+```
+
+#### 5.8.3 ShakeDestroyAnimation - 震动销毁
+
+**文件**: `scripts/animation/effects/ShakeDestroyAnimation.gd`
+
+**效果**: 震动 + 淡出 + 缩小 → 销毁
+
+```gdscript
+config = {
+    "duration": 0.5,        # 总时长（默认 0.5）
+    "shake_offset": Vector2(5, 5),  # 震动偏移（默认 Vector2(5,5)）
+    "shake_loops": 3,       # 震动次数（默认 3）
+    "fade_delay": 0.1      # 开始淡出延迟（默认 0.1）
+}
+```
+
+**实现原理**:
+```
+并行:
+  - tween: position 震动 (shake_loops 次)
+  - tween: scale → 0.2, duration * 0.6, EASE_OUT
+tween: modulate:a → 0, duration * 0.3 (延迟 fade_delay)
+callback
+```
 
 ---
 
@@ -403,6 +478,9 @@ card_widget.play_animation("hover", func(): print("完成"))
 
 ## 播放动画（无回调）
 card_widget.play_animation("click")
+
+## 播放销毁动画（带回调）
+card_widget.play_animation("shrink_destroy", func(): print("销毁完成"))
 ```
 
 ### 7.2 事件映射
@@ -414,8 +492,29 @@ card_widget.play_animation("click")
 | selected | move | 卡牌被选中 |
 | reveal | shake | 卡牌揭示 |
 | particle | particle | 手动触发粒子 |
+| shrink_destroy | shrink_destroy | 卡牌销毁（缩放） |
+| fade_destroy | fade_destroy | 卡牌销毁（淡出） |
+| shake_destroy | shake_destroy | 卡牌销毁（震动） |
 
-### 7.3 内部实现
+### 7.3 销毁动画流程
+
+```
+回合结束 → SettlementState 记录待销毁卡牌
+    ↓
+RoundEndState.play_animation("round_end")
+    ↓
+on_animation_complete()
+    ↓
+BattleUI_V2.play_destroy_animation(card_ids, callback)
+    ↓
+CardWidget.play_animation(destroy_type, on_widget_destroyed)
+    ↓
+所有动画完成 → callback()
+    ↓
+apply_settlement_cards() 移除卡牌
+```
+
+### 7.4 内部实现
 
 ```gdscript
 func play_animation(event_name: String, on_complete: Callable = Callable()) -> void:
