@@ -133,13 +133,14 @@ func record_round_result(winner: String) -> void:
 			_enemy_wins += 1
 
 func check_battle_end() -> bool:
-	if _player_wins >= _config.target_wins:
-		return true
-	if _enemy_wins >= _config.target_wins:
-		return true
-	if not _config.deck_policy.can_continue(_card_manager.get_deck_size(), _config.cards_per_round):
-		return true
-	return false
+	print("[BattleCore] check_battle_end: player_wins=%d/%d, enemy_wins=%d/%d, deck_size=%d, cards_per_round=%d" % [
+		_player_wins, _config.target_wins,
+		_enemy_wins, _config.target_wins,
+		_card_manager.get_deck_size(), _config.cards_per_round
+	])
+	var result = _player_wins >= _config.target_wins or _enemy_wins >= _config.target_wins or not _config.deck_policy.can_continue(_card_manager.get_deck_size(), _config.cards_per_round)
+	print("[BattleCore] check_battle_end result: %s" % result)
+	return result
 
 func get_battle_result() -> int:
 	if _player_wins >= _config.target_wins:

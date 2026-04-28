@@ -39,7 +39,6 @@ func enter() -> void:
 	])
 
 	_pending_destroy_ids = all_destroy
-	_core.add_pending_destroy_cards(all_destroy)
 
 	_core.ui_clear_selection()
 	play_animation("round_end")
@@ -51,12 +50,22 @@ func on_animation_complete() -> void:
 	call_deferred("_transition_to_next")
 
 func _transition_to_next() -> void:
-	if _pending_destroy_ids.is_empty():
-		_apply_settlement_and_transition()
-	else:
-		_core.transition_to(PlayerSelectState)
+	_apply_settlement_only()
 
-func _apply_settlement_and_transition() -> void:
+	if _core.check_battle_end():
+		_clear_pending_state()
+		_core.transition_to(BattleEndState)
+	elif _pending_destroy_ids.is_empty():
+		_clear_pending_state()
+		_core.transition_to(PlayerSelectState)
+	else:
+		_core.ui_play_destroy_animation(_pending_destroy_ids, _on_destroy_complete)
+
+func _on_destroy_complete() -> void:
+	_clear_pending_state()
+	_core.transition_to(PlayerSelectState)
+
+func _apply_settlement_only() -> void:
 	for card_id in _destroy_card_ids:
 		_core.remove_card_from_deck(card_id)
 		print("[RoundEndState] Destroyed (settlement): %s" % card_id)
@@ -78,9 +87,7 @@ func _apply_settlement_and_transition() -> void:
 	_deck_policy_add.clear()
 	_add_card_ids.clear()
 	_core.clear_settlement_cards()
-	_pending_destroy_ids.clear()
 
-	if _core.check_battle_end():
-		_core.transition_to(BattleEndState)
-	else:
-		_core.transition_to(PlayerSelectState)
+func _clear_pending_state() -> void:
+	_pending_destroy_ids.clear()
+	_core.clear_pending_destroy_cards()
