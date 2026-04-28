@@ -1,17 +1,18 @@
-# 动画系统设计文档 v1.1
+# 动画系统设计文档 v1.2
 
-> **日期**: 2026-04-28
+> **日期**: 2026-04-29
 > **状态**: ✅ 已完成
-> **版本**: v1.1
+> **版本**: v1.2
 
 ---
 
 ## 1. 系统概述
 
 动画系统采用 **接口 + 基类 + 具体实现** 的 OOP 架构，支持：
-- 独立动画效果（Glow、Bounce、Shake、Move）
+- 独立动画效果（Glow、Blow、Shake、Move）
 - 复合动画（Sequential、Parallel）
 - 粒子动画
+- 销毁动画（Tween-based 和 Shader-based）
 - 数据驱动的配置方式
 
 ### 1.1 设计原则
@@ -20,6 +21,30 @@
 2. **开闭原则**：通过继承 `BaseAnimation` 扩展新动画，无需修改现有代码
 3. **依赖倒置**：依赖 `IAnimation` 接口，不依赖具体实现
 4. **状态管理**：通过 `_is_playing` 状态控制动画生命周期
+5. **双重实现**：同一效果提供 Tween 和 Shader 两种实现，便于选择
+
+### 1.2 架构图
+
+```
+IAnimation (接口约定)
+    │
+    └── BaseAnimation (通用功能: _is_playing, _timer, set_target, etc.)
+            │
+            ├── TweenAnimation (具体实现)
+            │   ├── GlowAnimation
+            │   ├── ShakeAnimation
+            │   ├── MoveAnimation
+            │   └── DestroyAnimation (Tween版)
+            │       ├── FadeDestroyAnimation
+            │       ├── ShrinkDestroyAnimation
+            │       └── ShakeDestroyAnimation
+            │
+            └── ShaderAnimation (着色器实现)
+                └── ShaderDestroyAnimation (着色器版)
+                    ├── ShaderFadeDestroyAnimation
+                    ├── ShaderShrinkDestroyAnimation
+                    └── ShaderShakeDestroyAnimation
+```
 
 ---
 
@@ -36,13 +61,26 @@ scripts/
 │   │   └── ParallelAnimation.gd     # 并行播放（复合动画）
 │   ├── effects/
 │   │   ├── GlowAnimation.gd        # 发光效果
-│   │   ├── BounceAnimation.gd       # 弹跳效果
+│   │   ├── BounceAnimation.gd      # 弹跳效果
 │   │   ├── ShakeAnimation.gd       # 抖动效果
-│   │   └── MoveAnimation.gd        # 移动效果
+│   │   ├── MoveAnimation.gd        # 移动效果
+│   │   ├── FadeDestroyAnimation.gd        # Tween淡出销毁
+│   │   ├── ShrinkDestroyAnimation.gd      # Tween缩放销毁
+│   │   ├── ShakeDestroyAnimation.gd       # Tween震动销毁
+│   │   ├── ShaderDestroyAnimation.gd      # Shader动画基类
+│   │   ├── ShaderFadeDestroyAnimation.gd  # Shader淡出销毁
+│   │   ├── ShaderShrinkDestroyAnimation.gd # Shader缩放销毁
+│   │   └── ShaderShakeDestroyAnimation.gd  # Shader震动销毁
 │   └── particles/
-│       └── ParticleAnimation.gd      # 粒子生成
+│       └── ParticleAnimation.gd    # 粒子生成
 └── battle/
-    └── AnimationRegistry.gd          # 动画注册表（单例）
+    └── AnimationRegistry.gd         # 动画注册表（单例）
+
+shaders/
+└── destroy/
+    ├── FadeDestroy.gdshader        # 淡出着色器
+    ├── ShrinkDestroy.gdshader      # 缩放着色器
+    └── ShakeDestroy.gdshader       # 震动着色器
 ```
 
 ---
@@ -390,9 +428,12 @@ reg.get_animation_names()  # -> Array
 | particle | ParticleAnimation | 粒子效果 |
 | sequential | SequentialAnimation | 顺序播放 |
 | parallel | ParallelAnimation | 并行播放 |
-| fade_destroy | FadeDestroyAnimation | 淡出销毁 |
-| shrink_destroy | ShrinkDestroyAnimation | 缩放销毁 |
-| shake_destroy | ShakeDestroyAnimation | 震动销毁 |
+| fade_destroy | FadeDestroyAnimation | 淡出销毁（Tween） |
+| shrink_destroy | ShrinkDestroyAnimation | 缩放销毁（Tween） |
+| shake_destroy | ShakeDestroyAnimation | 震动销毁（Tween） |
+| shader_fade_destroy | ShaderFadeDestroyAnimation | 淡出销毁（Shader） |
+| shader_shrink_destroy | ShaderShrinkDestroyAnimation | 缩放销毁（Shader） |
+| shader_shake_destroy | ShaderShakeDestroyAnimation | 震动销毁（Shader） |
 
 ---
 
@@ -400,7 +441,21 @@ reg.get_animation_names()  # -> Array
 
 **效果**: 卡牌销毁时播放的特殊效果动画
 
-#### 5.8.1 FadeDestroyAnimation - 淡出销毁
+#### 5.8.1 Tween vs Shader 实现对比
+
+| 特性 | Tween 实现 | Shader 实现 |
+|------|-----------|-------------|
+| 文件 | `FadeDestroyAnimation.gd` | `ShaderFadeDestroyAnimation.gd` |
+| 渲染方式 | CPU (Tween) | GPU (ShaderMaterial) |
+| 性能 | 一般 | 优秀（大量销毁时） |
+| 代码复杂度 | 简单 | 中等 |
+| 扩展性 | 简单修改 | 需要修改 shader 文件 |
+
+**选择建议**：
+- 少量卡牌销毁 → Tween 实现即可
+- 大量卡牌同时销毁 → Shader 实现性能更好
+
+#### 5.8.2 FadeDestroyAnimation - Tween 淡出销毁
 
 **文件**: `scripts/animation/effects/FadeDestroyAnimation.gd`
 
@@ -421,7 +476,7 @@ tween: modulate:a → 0, duration * 0.4 (延迟 fade_delay)
 callback
 ```
 
-#### 5.8.2 ShrinkDestroyAnimation - 缩放销毁
+#### 5.8.3 ShrinkDestroyAnimation - Tween 缩放销毁
 
 **文件**: `scripts/animation/effects/ShrinkDestroyAnimation.gd`
 
@@ -442,7 +497,7 @@ tween: modulate:a → 0, duration * 0.5
 callback
 ```
 
-#### 5.8.3 ShakeDestroyAnimation - 震动销毁
+#### 5.8.4 ShakeDestroyAnimation - Tween 震动销毁
 
 **文件**: `scripts/animation/effects/ShakeDestroyAnimation.gd`
 
@@ -464,6 +519,58 @@ config = {
   - tween: scale → 0.2, duration * 0.6, EASE_OUT
 tween: modulate:a → 0, duration * 0.3 (延迟 fade_delay)
 callback
+```
+
+#### 5.8.5 ShaderFadeDestroyAnimation - Shader 淡出销毁
+
+**文件**: `scripts/animation/effects/ShaderFadeDestroyAnimation.gd`
+**Shader**: `shaders/destroy/FadeDestroy.gdshader`
+
+**效果**: GPU 加速淡出 + 缩小
+
+**实现原理**:
+```
+1. 创建 ShaderMaterial，设置 shader 参数
+2. 挂载到 CardWidget 的 Sprite 节点上
+3. Tween 驱动 'progress' uniform (0.0 → 1.0)
+4. Shader 内部计算 scale 和 alpha
+```
+
+**Shader 核心逻辑**:
+```glsl
+void fragment() {
+    float p = clamp(progress, 0.0, 1.0);
+    vec2 scale = mix(1.0, shrink_scale, smoothstep(0.0, 1.0, p));
+    // ... UV 缩放逻辑
+    float alpha_fade_point = smoothstep(fade_delay, 1.0, p);
+    COLOR.a *= (1.0 - alpha_fade_point);
+}
+```
+
+#### 5.8.6 ShaderShrinkDestroyAnimation - Shader 缩放销毁
+
+**文件**: `scripts/animation/effects/ShaderShrinkDestroyAnimation.gd`
+**Shader**: `shaders/destroy/ShrinkDestroy.gdshader`
+
+**效果**: GPU 加速缩放 + 淡出
+
+#### 5.8.7 ShaderShakeDestroyAnimation - Shader 震动销毁
+
+**文件**: `scripts/animation/effects/ShaderShakeDestroyAnimation.gd`
+**Shader**: `shaders/destroy/ShakeDestroy.gdshader`
+
+**效果**: GPU 加速震动 + 缩放 + 淡出
+
+**Shader 核心逻辑**:
+```glsl
+float shake(float t, float freq, float amp) {
+    return sin(t * freq) * amp;
+}
+void fragment() {
+    float shake_phase = p * float(shake_loops) * 6.28318;
+    float shake_x = shake(shake_phase, 20.0, shake_offset.x / 100.0);
+    // ... 结合震动和缩放
+}
 ```
 
 ---
@@ -750,122 +857,242 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 
 ---
 
-## 12. 待实现
+## 12. Shader 动画详细说明
 
-- [ ] 粒子场景 `scenes/particles/coin.tscn`
-- [ ] SettlementState 粒子集成
-- [ ] 组合动画队列（3张牌飞向出牌区）
-- [ ] 动画编辑器工具
-- [ ] 动画优先级/打断机制
-- [ ] **PropertyTweenAnimation**（属性动画泛化）
+### 12.1 概述
 
----
+Shader 动画使用 GPU 渲染实现高性能的销毁效果。Tween 驱动 `progress` uniform (0.0→1.0)，Shader 内部计算 UV 缩放和 alpha 混合。
 
-## 12.5 扩展性规划：属性动画
+### 12.2 架构
 
-### 12.5.1 问题背景
+```
+ShaderDestroyAnimation (GDScript)
+├── play(): 创建 ShaderMaterial，挂载到目标 Sprite
+├── 启动 Tween: tween_method 驱动 progress uniform
+│
+└── .gdshader (GPU)
+    └── fragment(): 根据 progress 计算缩放和透明度
+```
 
-当前架构每种动画效果需要新建一个类：
-- 新增 Shader 效果 → 新建 `ShaderAnimation`
-- 新增颜色变化 → 新建 `ColorAnimation`
-- 新增任意 Node 属性动画 → 继续新建类...
+### 12.3 文件对应关系
 
-这导致：
-- 类数量膨胀
-- 复用性低（BounceAnimation 的逻辑无法给 scale 动画复用）
-- 新效果需要改代码
+| GDScript 类 | Shader 文件 | 效果 |
+|-------------|-------------|------|
+| ShaderFadeDestroyAnimation | FadeDestroy.gdshader | 淡出 + 缩小 |
+| ShaderShrinkDestroyAnimation | ShrinkDestroy.gdshader | 缩放 + 淡出 |
+| ShaderShakeDestroyAnimation | ShakeDestroy.gdshader | 震动 + 缩放 + 淡出 |
 
-### 12.5.2 解决方案：PropertyTweenAnimation
+### 12.4 Shader 实现要点
 
-一个类，通过配置描述动画，复用所有 Tween 逻辑：
+#### 12.4.1 缩放原理
 
-```gdscript
-class_name PropertyTweenAnimation
-extends BaseAnimation
+```glsl
+// 以 UV 中心为基准缩放
+vec2 centered_uv = UV - vec2(0.5);
+centered_uv *= scale;
+centered_uv += vec2(0.5);
 
-## config 格式
-{
-    "tweens": [
-        {"property": "position", "to": Vector2(100, 200), "duration": 0.3},
-        {"property": "scale", "to": Vector2(1.2, 1.2), "duration": 0.2},
-        {"property": "modulate", "to": Color.RED, "duration": 0.1},
-        {"property": "material:shader_param/intensity", "to": 1.0, "duration": 0.5}
-    ],
-    "mode": "parallel",  # 或 "sequential"
-    "ease": Tween.EASE_OUT
+// 超出范围则透明
+if (centered_uv.x < 0.0 || centered_uv.x > 1.0 || ...) {
+    COLOR.a = 0.0;
 }
 ```
 
-### 12.5.3 解决的问题
+#### 12.4.2 震动原理
 
-| 需求 | 当前方案 | PropertyTweenAnimation |
-|------|----------|------------------------|
-| 移动位置 | MoveAnimation | `"position"` |
-| 缩放 | 需新类 | `"scale"` |
-| 变色 | 需新类 | `"modulate"` |
-| Shader效果 | 需新类 | `"material:shader_param/x"` |
-| 组合动画 | SequentialAnimation | 一个 config 搞定 |
+```glsl
+float shake(float t, float freq, float amp) {
+    return sin(t * freq) * amp;
+}
+// t = time, freq = 频率, amp = 振幅
 
-### 12.5.4 实现要点
-
-```gdscript
-func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
-    super.play(target, config, on_complete)
-
-    var tweens_config = config.get("tweens", [])
-    var mode = config.get("mode", "parallel")
-    var ease = config.get("ease", Tween.EASE_OUT)
-
-    var tween = target.create_tween()
-
-    for tc in tweens_config:
-        var prop = tc.get("property", "")
-        var to_val = tc.get("to")
-        var dur = tc.get("duration", 0.3)
-
-        if mode == "sequential":
-            tween.chain().tween_property(target, prop, to_val, dur).set_ease(ease)
-        else:
-            tween.set_parallel(true)
-            tween.tween_property(target, prop, to_val, dur).set_ease(ease)
-
-    tween.chain().tween_callback(_on_complete)
-    _is_playing = true
+float shake_phase = progress * float(shake_loops) * 6.28318;
+// progress 0→1 对应 0 → shake_loops 个完整周期
 ```
 
-### 12.5.5 设计原则
+### 12.5 创建新的 Shader 动画
 
-1. **保持兼容**：新增类不影响现有 GlowAnimation、BounceAnimation 等
-2. **OOP 模块化**：PropertyTweenAnimation 继承 BaseAnimation，复用状态管理
-3. **配置驱动**：新效果不需要写类，只需配置
-4. **渐进增强**：原有专用动画类保留，业务代码可逐步迁移到配置
+**步骤 1**: 创建 `.gdshader` 文件
+```glsl
+shader_type canvas_item;
 
-### 12.5.6 使用示例
+uniform float progress : hint_range(0.0, 1.0) = 0.0;
 
-```gdscript
-## CardWidget 触发
-card_widget.play_animation("property", {
-    "tweens": [
-        {"property": "position", "to": Vector2(100, 200), "duration": 0.3},
-        {"property": "scale", "to": Vector2(1.5, 1.5), "duration": 0.15, "ease": Tween.EASE_IN}
-    ],
-    "mode": "sequential"
-})
-
-## CardData 预定义
-card_data.animation_config = {
-    "click": {
-        "type": "property",
-        "tweens": [...]
-    }
+void fragment() {
+    // 实现效果
 }
 ```
 
+**步骤 2**: 创建 GDScript 动画类
+```gdscript
+class_name MyShaderAnimation
+extends ShaderDestroyAnimation
+
+func _init():
+    super("res://shaders/path/to/my_shader.gdshader")
+    _animation_name = "MyShader"
+```
+
+**步骤 3**: 注册到 AnimationRegistry
+```gdscript
+_presets["my_shader"] = MyShaderAnimation.new()
+```
+
+**步骤 4**: 在 CardWidget 添加事件映射
+```gdscript
+func _get_animation_name_for(event_name: String) -> String:
+    match event_name:
+        # ... existing ...
+        "my_shader": return "my_shader"
+    return ""
+```
+
+### 12.6 常见问题
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 动画没变化 | Sprite 未正确获取 | 检查 `CardContainer/Sprite` 路径 |
+| Shader 不生效 | material 未设置 | 确保 `sprite.material = _material` |
+| 编译错误 | uniform 类型错误 | 使用 `hint_range` 等正确 hint |
+
+### 12.7 性能对比
+
+| 场景 | Tween | Shader |
+|------|-------|--------|
+| 1-3 张卡牌销毁 | ✅ 足够 | ✅ 可用 |
+| 5+ 张卡牌同时销毁 | ⚠️ 可能有卡顿 | ✅ GPU 加速更流畅 |
+| 移动端 | ⚠️ 耗电 | ✅ 更省电 |
+
 ---
 
-## 13. 版本历史
+## 13. 销毁动画完整流程
+
+### 13.1 触发链路
+
+```
+1. 回合结算
+   SettlementState.calculate_settlement()
+   → 判定胜负
+   → CostContext 执行代价 (SelfDestroyCost, DelayedDestroyCost)
+   → 标记 card_id 到 BattleReport
+
+2. 记录待销毁卡牌
+   SettlementState.enter()
+   → _core.record_settlement_cards(cards_to_remove, cards_to_add)
+
+3. 回合结束动画
+   RoundEndState.enter()
+   → play_animation("round_end")
+   → on_animation_complete()
+
+4. 执行销毁动画
+   RoundEndState._transition_to_next()
+   → _core.ui_play_destroy_animation(all_destroy_ids, callback)
+
+5. UI 播放动画
+   BattleUI_V2.play_destroy_animation(card_ids, callback)
+   → for widget in widgets_to_destroy:
+       widget.play_animation("shader_shrink_destroy", on_widget_destroyed)
+
+6. 卡牌 Widget 执行动画
+   CardWidget.play_animation("shader_shrink_destroy", callback)
+   → AnimationRegistry.get_animation("shader_shrink_destroy")
+   → ShaderShrinkDestroyAnimation.play(self, config, callback)
+       → 创建 ShaderMaterial
+       → 挂载到 Sprite
+       → 启动 Tween 驱动 progress
+
+7. 动画完成
+   所有 widget 动画完成后
+   → callback()
+   → RoundEndState._on_destroy_complete()
+   → _apply_settlement_and_transition()
+       → _core.remove_card_from_deck(card_id)
+       → _core.add_card_to_deck(proto_id)
+       → transition_to(PlayerSelectState)
+```
+
+### 13.2 数据流
+
+```
+CostContext.destroy_source_card()
+    ↓
+BattleReport.add_card_to_remove(card_id)
+    ↓
+SettlementState._settlement_report.get_cards_to_remove()
+    ↓
+BattleCore._settlement_cards_to_remove
+    ↓
+RoundEndState._destroy_card_ids
+    ↓
+BattleUI_V2.play_destroy_animation(card_ids, callback)
+    ↓
+CardWidget.play_animation("shader_shrink_destroy", callback)
+    ↓
+AnimationRegistry.get_animation("shader_shrink_destroy")
+    ↓
+ShaderShrinkDestroyAnimation.play(widget, config, callback)
+    ↓
+(widget.queue_free() 在 callback 中调用) ← 注意：当前需要手动调用
+```
+
+### 13.3 代码位置索引
+
+| 功能 | 文件 | 方法/变量 |
+|------|------|----------|
+| 代价触发 | `SelfDestroyCost.gd` | `trigger()` → `context.destroy_source_card()` |
+| 代价触发 | `DelayedDestroyCost.gd` | `trigger()` → `context.mark_delayed_destroy()` |
+| 记录销毁 | `SettlementState.gd:27-33` | `record_settlement_cards()` |
+| 获取销毁列表 | `BattleCore.gd` | `get_settlement_cards_to_remove()` |
+| 执行销毁动画 | `RoundEndState.gd:35` | `ui_play_destroy_animation()` |
+| 播放销毁动画 | `BattleUI_V2.gd:224` | `play_destroy_animation()` |
+| 动画名称映射 | `CardWidget.gd:115` | `_get_animation_name_for()` |
+| 动画配置 | `CardWidget.gd:124` | `_build_animation_config()` |
+| 执行动画 | `CardWidget.gd:94` | `play_animation()` |
+
+### 13.4 添加新销毁动画步骤
+
+1. **创建动画类** (如需新效果):
+   ```
+   scripts/animation/effects/MyDestroyAnimation.gd
+   ```
+
+2. **创建 Shader** (如需 GPU 渲染):
+   ```
+   shaders/destroy/MyDestroy.gdshader
+   ```
+
+3. **注册到 AnimationRegistry**:
+   ```gdscript
+   _presets["my_destroy"] = MyDestroyAnimation.new()
+   ```
+
+4. **在 CardWidget 添加映射**:
+   ```gdscript
+   "my_destroy": return "my_destroy"
+   ```
+
+5. **使用动画**:
+   ```gdscript
+   widget.play_animation("my_destroy", callback)
+   ```
+
+---
+
+## 14. 版本历史
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-29 | v1.2 | 新增 Shader 销毁动画，添加完整流程文档 |
 | 2026-04-28 | v1.1 | 修复 GDScript 兼容性，完善文档细节 |
 | 2026-04-28 | v1.0 | 初始实现 |
+
+---
+
+## 15. 待实现
+
+- [ ] PropertyTweenAnimation（属性动画泛化）
+- [ ] 动画编辑器工具
+- [ ] 组合动画队列（3张牌飞向出牌区）
+- [ ] 动画优先级/打断机制
+- [ ] SettlementState 粒子集成
