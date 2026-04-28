@@ -17,14 +17,13 @@ Godot 4.3 卡牌对战游戏
 - [docs/RETROSPECTIVE.md](docs/RETROSPECTIVE.md) - 问题复盘与经验总结
 - [docs/TECH_REFERENCE.md](docs/TECH_REFERENCE.md) - 技术参考
 - [docs/BATTLE_FLOW_DESIGN.md](docs/BATTLE_FLOW_DESIGN.md) - 战斗流程设计
-- [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md) - **战斗系统 V2（状态机架构）**
+- [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md) - 战斗系统 V2 架构文档
 
 ## 核心功能
 
 | 模块 | 状态 | 说明 |
 |------|------|------|
 | 卡牌战斗 | ✅ | 完整战斗流程、选牌、比大小 |
-| **Battle System V2** | ✅ | 状态机架构、模块化设计、压力测试通过 |
 | 卡牌背包 | ✅ | CardMgr 管理，最多20张 |
 | 存档系统 | ✅ | SaveManager + WorldState |
 | 对话系统 | ✅ | NarrativeEngine + DialogueSystem |
@@ -32,59 +31,13 @@ Godot 4.3 卡牌对战游戏
 | 特效系统 | 🔨 | 设计文档完成，待实现 |
 | 物品背包 | 🔜 | 计划中 |
 
-## Battle System V2
-
-新版战斗系统使用状态机架构，参考 [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md)
-
-### 状态流转
-```
-PlayerSelect → EnemyReveal → Settlement → RoundEnd
-                                          ↓
-                              (循环或 BattleEnd)
-```
-
-### 压力测试
-运行 `scenes/battle/BattleStressTest.tscn` 测试战斗系统 API
-
-### 测试结果 (2026-04-28)
-```
-Round 1: Player 20 vs 21 Enemy → Enemy Win (0-1)
-Round 2: Player 18 vs 21 Enemy → Enemy Win (0-2)
-Round 3: Player 22 vs 21 Enemy → Player Win (1-2)
-Round 4: Player 16 vs 21 Enemy → Enemy Win (1-3) → BATTLE END
-Result: Defeat (Enemy 3 wins)
-```
-
-### 已验证功能
-| 功能 | 状态 |
-|------|------|
-| 状态机流转 | ✅ |
-| 随机玩家/敌方选牌 | ✅ |
-| 3胜制结束 | ✅ |
-| Cost 系统联动 | ✅ |
-| 程序正常退出 | ✅ |
-
-### 已修复问题
-- Stack overflow in transition_to() - 使用 call_deferred()
-- 状态转换同步执行 - 使用 on_animation_complete()
-- SettlementState 胜负判断错误 - 自己比较分数
-
-## 代码统计
-
-| 语言 | 文件 | 行数 |
-|------|------|------|
-| GDScript | 78+ | 6,257+ |
-| TSCN | 17+ | 2,264+ |
-| JSON | 5 | 394 |
-| **合计** | **100+** | **8,915+** |
-
 ## 版本
 
 - **v5.0**: Battle System V2 状态机架构完成、压力测试通过
 - **v4.1**: InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复
 - **v4.0**: 新增调试菜单、卡牌背包系统、存档系统重构
 - v3.5: 新增卡牌特效系统设计文档（EFFECTS_SYSTEM.md）
-- v3.4: 运行时错误修复（着色器丢失、静态调用、缺失变量、主菜单音量加载）
+- v3.4: 运行时错误修复
 - v3.3: 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式
 - v3.0: 整合thryzhn横板探索系统
 - v2.2: BattleUI_v1 Node2D 架构，卡片动画与交互系统
