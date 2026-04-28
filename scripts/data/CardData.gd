@@ -22,6 +22,13 @@ var base_value: int
 var effect_ids: Array = []
 var cost_id: String
 var is_lockable: bool
+var animation_config: Dictionary = {
+	"hover": "glow",
+	"click": "bounce",
+	"selected": "move",
+	"reveal": "shake",
+	"particle": "spark"
+}
 
 func _init(
 	p_id: String = "",
