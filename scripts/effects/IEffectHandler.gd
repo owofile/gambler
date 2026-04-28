@@ -24,7 +24,7 @@ func apply(context: EffectContext) -> void:
 ## Get the execution priority within the same trigger timing
 ## Lower numbers execute first
 func get_priority() -> int:
-	return EffectEnums.EffectPriority.Normal
+	return EffectEnums.EffectPriority.ValueModifier
 
 ## Get effect description for UI display
 func get_description() -> String:

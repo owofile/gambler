@@ -12,7 +12,7 @@ enum Timing {
 	MANUAL = 4           # 手动 - 需要玩家选择目标
 }
 
-static func to_string(timing: int) -> String:
+static func timing_to_string(timing: int) -> String:
 	match timing:
 		Timing.IMMEDIATE: return "IMMEDIATE"
 		Timing.SEQUENTIAL: return "SEQUENTIAL"
@@ -21,7 +21,7 @@ static func to_string(timing: int) -> String:
 		Timing.MANUAL: return "MANUAL"
 	return "UNKNOWN"
 
-static func from_string(s: String) -> int:
+static func timing_from_string(s: String) -> int:
 	match s.to_upper():
 		"IMMEDIATE": return Timing.IMMEDIATE
 		"SEQUENTIAL": return Timing.SEQUENTIAL
