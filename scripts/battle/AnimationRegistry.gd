@@ -21,7 +21,7 @@ func _init_presets() -> void:
 	_presets["parallel"] = ParallelAnimation.new()
 
 ## 获取动画实例
-func get_animation(name: String) -> IAnimation:
+func get_animation(name: String) -> Variant:
 	if _custom_animations.has(name):
 		return _custom_animations[name]
 
