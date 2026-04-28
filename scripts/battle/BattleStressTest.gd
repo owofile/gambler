@@ -25,6 +25,8 @@ var _enemy_deck: Array = [
 	"card_cursed_amulet"
 ]
 
+var _enemy_data: EnemyData = null
+
 var _player_wins: int = 0
 var _enemy_wins: int = 0
 var _round_count: int = 0
@@ -63,11 +65,19 @@ func _setup_battle() -> void:
 	_battle_core.battle_completed.connect(_on_battle_completed)
 	_battle_core.state_changed.connect(_on_state_changed)
 
+	_enemy_data = EnemyData.new(
+		"enemy_skeletal_warrior",
+		"Skeletal Warrior",
+		EnemyData.EnemyTier.Grunt,
+		_enemy_deck.duplicate(),
+		[]
+	)
+
 	_config = BattleConfig.new()
 	_config.target_wins = 3
 	_config.cards_per_round = 3
 	_config.initial_hand_size = 6
-	_config.enemy_deck_order = _enemy_deck.duplicate()
+	_config.enemy_data = _enemy_data
 	_config.deck_policy = NoConsumptionPolicy.new()
 
 	print("[BattleStressTest] Starting battle...")
@@ -108,7 +118,7 @@ func _process_round_end() -> void:
 	var player_hand = _battle_core.get_player_hand()
 	print("[BattleStressTest] RoundEnd #%d - remaining cards: %d" % [_round_count, player_hand.size()])
 	print("[BattleStressTest]   Score: Player %d vs Enemy %d (target: %d)" % [
-		_battle_core._player_wins, _battle_core._enemy_wins, _config.target_wins])
+		_player_wins, _enemy_wins, _config.target_wins])
 
 	if _battle_core._player_wins > _player_wins:
 		print("[BattleStressTest]   >>> Player won this round!")
