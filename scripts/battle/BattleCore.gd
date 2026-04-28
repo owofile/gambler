@@ -26,12 +26,24 @@ var _enemy_cards: Array = []
 var _battle_report: BattleReport = null
 var _settlement_cards_to_remove: Array = []
 var _settlement_cards_to_add: Array = []
+var _pending_destroy_card_ids: Array = []
 
 func get_settlement_cards_to_remove() -> Array:
 	return _settlement_cards_to_remove.duplicate()
 
 func get_settlement_cards_to_add() -> Array:
 	return _settlement_cards_to_add.duplicate()
+
+func get_pending_destroy_card_ids() -> Array:
+	return _pending_destroy_card_ids.duplicate()
+
+func add_pending_destroy_cards(card_ids: Array) -> void:
+	for cid in card_ids:
+		if not _pending_destroy_card_ids.has(cid):
+			_pending_destroy_card_ids.append(cid)
+
+func clear_pending_destroy_cards() -> void:
+	_pending_destroy_card_ids.clear()
 
 func initialize(card_manager: Node, data_manager: Node, ui: CanvasLayer) -> void:
 	_card_manager = card_manager
@@ -165,6 +177,12 @@ func remove_card_from_deck(card_id: String) -> void:
 
 func add_card_to_deck(proto_id: String) -> void:
 	_card_manager.add_card(proto_id)
+
+func get_card_manager() -> Node:
+	return _card_manager
+
+func get_data_manager() -> Node:
+	return _data_manager
 
 func request_animation(anim_name: String) -> void:
 	animation_requested.emit(anim_name)

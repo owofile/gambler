@@ -6,6 +6,7 @@ var _destroy_card_ids: Array = []
 var _add_card_ids: Array = []
 var _deck_policy_remove: Array = []
 var _deck_policy_add: Array = []
+var _pending_destroy_ids: Array = []
 
 func _init(core: BattleCore) -> void:
 	super._init(core)
@@ -26,10 +27,19 @@ func enter() -> void:
 		_core.get_config().cards_per_round
 	)
 
-	print("[RoundEndState] Settlement destroy: %d, add: %d | Deck policy remove: %d, add: %d" % [
+	var all_destroy = _destroy_card_ids.duplicate()
+	for cid in _deck_policy_remove:
+		if not all_destroy.has(cid):
+			all_destroy.append(cid)
+
+	print("[RoundEndState] Settlement destroy: %d, add: %d | Deck policy remove: %d, add: %d | Total to destroy: %d" % [
 		_destroy_card_ids.size(), _add_card_ids.size(),
-		_deck_policy_remove.size(), _deck_policy_add.size()
+		_deck_policy_remove.size(), _deck_policy_add.size(),
+		all_destroy.size()
 	])
+
+	_pending_destroy_ids = all_destroy
+	_core.add_pending_destroy_cards(all_destroy)
 
 	_core.ui_clear_selection()
 	play_animation("round_end")
@@ -41,18 +51,10 @@ func on_animation_complete() -> void:
 	call_deferred("_transition_to_next")
 
 func _transition_to_next() -> void:
-	var all_destroy = _destroy_card_ids.duplicate()
-	for cid in _deck_policy_remove:
-		if not all_destroy.has(cid):
-			all_destroy.append(cid)
-
-	if all_destroy.is_empty():
+	if _pending_destroy_ids.is_empty():
 		_apply_settlement_and_transition()
 	else:
-		_core.ui_play_destroy_animation(all_destroy, _on_destroy_complete)
-
-func _on_destroy_complete() -> void:
-	_apply_settlement_and_transition()
+		_core.transition_to(PlayerSelectState)
 
 func _apply_settlement_and_transition() -> void:
 	for card_id in _destroy_card_ids:
@@ -76,6 +78,7 @@ func _apply_settlement_and_transition() -> void:
 	_deck_policy_add.clear()
 	_add_card_ids.clear()
 	_core.clear_settlement_cards()
+	_pending_destroy_ids.clear()
 
 	if _core.check_battle_end():
 		_core.transition_to(BattleEndState)
