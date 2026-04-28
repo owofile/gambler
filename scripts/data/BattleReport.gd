@@ -14,12 +14,14 @@ var _rounds: Array = []
 var _cards_to_add: Array = []
 var _cards_to_remove: Array = []
 var _disabled_instance_ids: Array = []
+var _delayed_destroy_ids: Array = []
 
 func _init() -> void:
 	_rounds = []
 	_cards_to_add = []
 	_cards_to_remove = []
 	_disabled_instance_ids = []
+	_delayed_destroy_ids = []
 
 func get_result() -> BattleEnums.EBattleResult:
 	return _result
@@ -72,6 +74,13 @@ func get_disabled_instance_ids() -> Array:
 func add_disabled_instance(instance_id: String) -> void:
 	if not instance_id.is_empty() and not _disabled_instance_ids.has(instance_id):
 		_disabled_instance_ids.append(instance_id)
+
+func get_delayed_destroy_ids() -> Array:
+	return _delayed_destroy_ids.duplicate()
+
+func add_delayed_destroy(instance_id: String) -> void:
+	if not instance_id.is_empty() and not _delayed_destroy_ids.has(instance_id):
+		_delayed_destroy_ids.append(instance_id)
 
 func is_card_disabled(instance_id: String) -> bool:
 	return _disabled_instance_ids.has(instance_id)

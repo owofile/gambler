@@ -868,3 +868,88 @@ func get_effects_by_timing(effect_ids_with_source: Array) -> Dictionary:
 1. **向后兼容**：IMMEDIATE 效果与原有逻辑完全兼容
 2. **MANUAL 效果**：目前会在日志中提示跳过，后续需要 UI 层配合实现
 3. **DELAYED_ROUND**：需要 BattleFlowManager 在下回合开始时处理
+
+---
+
+## 15. 代价系统 (Cost System)
+
+### 15.1 代价接口
+
+```gdscript
+class_name ICostHandler
+extends RefCounted
+
+func trigger(context: CostContext) -> void:
+    pass
+```
+
+### 15.2 已实现代价
+
+| 代价ID | 类名 | 效果 |
+|--------|------|------|
+| `self_destroy` | SelfDestroyCost | 使用后立即销毁该卡牌 |
+| `next_turn_unusable` | NextTurnUnusableCost | 下回合不可用 |
+| `delayed_destroy` | DelayedDestroyCost | 下回合结束后销毁 |
+| `value_buff_2` | ValueBuffCost | 增加2点数值 |
+| `value_buff_3` | ValueBuffCost | 增加3点数值 |
+| `value_reduction_2` | ValueReductionCost | 减少2点数值 |
+
+### 15.3 CostContext
+
+```gdscript
+class_name CostContext
+extends RefCounted
+
+var _effect_context: EffectContext  # 战斗上下文
+var _report: BattleReport          # 战斗报告
+var _source_card: CardSnapshot     # 触发代价的卡牌
+var _owner: String                 # "player" 或 "enemy"
+
+## 销毁触发代价的卡牌
+func destroy_source_card() -> void
+
+## 禁用触发代价的卡牌（下回合不可用）
+func disable_source_card() -> void
+```
+
+### 15.4 代价执行时机
+
+代价在**回合结算后**执行：
+
+```
+1. 计算基础点数
+2. 执行所有效果 (effect_ids)
+3. 比较总点数，判定胜负
+4. 执行代价 (cost_id) → 修改卡牌状态
+```
+
+### 15.5 JSON 配置示例
+
+```json
+{
+    "card_explosive": {
+        "display_name": "爆炸剑",
+        "base_value": 8,
+        "effect_ids": ["fixed_bonus_3"],
+        "cost_id": "self_destroy"
+    },
+    "card_delayed_bomb": {
+        "display_name": "定时炸弹",
+        "base_value": 6,
+        "effect_ids": [],
+        "cost_id": "delayed_destroy"
+    },
+    "card_weakened": {
+        "display_name": "虚弱之刃",
+        "base_value": 10,
+        "effect_ids": [],
+        "cost_id": "value_reduction_2"
+    }
+}
+```
+
+### 15.6 创建新代价
+
+1. 创建类继承 `ICostHandler`
+2. 在 `CostRegistry._register_all_costs()` 中注册
+3. 在 JSON 中使用 `cost_id` 引用

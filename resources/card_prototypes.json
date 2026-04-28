@@ -160,5 +160,86 @@
 		"is_lockable": true,
 		"texture": "",
 		"display_name": "法令"
+	},
+	"card_booster_alpha": {
+		"card_class": "Artifact",
+		"base_value": 5,
+		"effect_ids": ["boost_next_3"],
+		"cost_id": "",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "增幅器α"
+	},
+	"card_booster_beta": {
+		"card_class": "Artifact",
+		"base_value": 6,
+		"effect_ids": ["boost_next_5"],
+		"cost_id": "",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "增幅器β"
+	},
+	"card_boost_chain": {
+		"card_class": "Artifact",
+		"base_value": 4,
+		"effect_ids": ["boost_next_3", "boost_next_3"],
+		"cost_id": "",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "连锁增幅"
+	},
+	"card_mixed_test": {
+		"card_class": "Artifact",
+		"base_value": 3,
+		"effect_ids": ["fixed_bonus_2", "boost_next_3"],
+		"cost_id": "",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "混合测试"
+	},
+	"card_self_destruct": {
+		"card_class": "Artifact",
+		"base_value": 8,
+		"effect_ids": ["fixed_bonus_3"],
+		"cost_id": "self_destroy",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "自毁剑"
+	},
+	"card_delayed_death": {
+		"card_class": "Artifact",
+		"base_value": 7,
+		"effect_ids": ["boost_next_3"],
+		"cost_id": "delayed_destroy",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "延迟毁灭"
+	},
+	"card_next_turn_ban": {
+		"card_class": "Artifact",
+		"base_value": 6,
+		"effect_ids": ["fixed_bonus_2"],
+		"cost_id": "next_turn_unusable",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "禁锢之刃"
+	},
+	"card_power_sacrifice": {
+		"card_class": "Artifact",
+		"base_value": 10,
+		"effect_ids": [],
+		"cost_id": "value_reduction_2",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "力量牺牲"
+	},
+	"card_cheap_booster": {
+		"card_class": "Artifact",
+		"base_value": 2,
+		"effect_ids": ["boost_next_5"],
+		"cost_id": "value_buff_2",
+		"is_lockable": true,
+		"texture": "",
+		"display_name": "廉价增幅"
 	}
 }

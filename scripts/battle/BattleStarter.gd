@@ -26,12 +26,12 @@ func _ready() -> void:
 
 func _setup_test_cards() -> void:
 	var test_cards = [
-		"card_rusty_sword",
-		"card_ancient_shield",
-		"card_cursed_amulet",
-		"card_friendly_spirit",
-		"card_justice",
-		"card_vengeance"
+		"card_booster_alpha",
+		"card_booster_beta",
+		"card_self_destruct",
+		"card_delayed_death",
+		"card_next_turn_ban",
+		"card_power_sacrifice"
 	]
 	for proto_id in test_cards:
 		_card_manager.add_card(proto_id)
