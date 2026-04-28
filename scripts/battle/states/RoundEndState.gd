@@ -12,6 +12,8 @@ func _init(core: BattleCore) -> void:
 func enter() -> void:
 	_core.notify_state_changed(_state_name)
 
+	_core.apply_settlement_cards()
+
 	var player_cards = _core.get_current_player_cards()
 	var current_deck_size = _core.get_deck_size()
 

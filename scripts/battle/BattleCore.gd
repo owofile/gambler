@@ -24,6 +24,8 @@ var _round_number: int = 0
 var _player_cards: Array = []
 var _enemy_cards: Array = []
 var _battle_report: BattleReport = null
+var _settlement_cards_to_remove: Array = []
+var _settlement_cards_to_add: Array = []
 
 func initialize(card_manager: Node, data_manager: Node, ui: CanvasLayer) -> void:
 	_card_manager = card_manager
@@ -134,6 +136,21 @@ func generate_report() -> BattleReport:
 	_battle_report.set_player_wins(_player_wins)
 	_battle_report.set_enemy_wins(_enemy_wins)
 	return _battle_report
+
+func record_settlement_cards(cards_to_remove: Array, cards_to_add: Array) -> void:
+	_settlement_cards_to_remove = cards_to_remove.duplicate()
+	_settlement_cards_to_add = cards_to_add.duplicate()
+	print("[BattleCore] Recorded settlement cards to remove: %d, add: %d" % [_settlement_cards_to_remove.size(), _settlement_cards_to_add.size()])
+
+func apply_settlement_cards() -> void:
+	for card_id in _settlement_cards_to_remove:
+		var removed = _card_manager.remove_card(card_id)
+		print("[BattleCore] Settlement card removed: %s (success=%s)" % [card_id, removed])
+	for proto_id in _settlement_cards_to_add:
+		var added = _card_manager.add_card(proto_id)
+		print("[BattleCore] Settlement card added: %s" % proto_id)
+	_settlement_cards_to_remove.clear()
+	_settlement_cards_to_add.clear()
 
 func remove_card_from_deck(card_id: String) -> void:
 	_card_manager.remove_card(card_id)

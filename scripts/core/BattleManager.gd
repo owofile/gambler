@@ -298,6 +298,7 @@ static func _execute_effects_by_timing(context: EffectContext, effect_registry, 
 					var handler: IEffectHandler = item["handler"]
 					if handler.get_target_card_ids(context, card_id).has(next_card):
 						handler.apply_to_card(context, next_card)
+		context.set_current_player_total(_recalculate_player_total(context))
 
 	if by_timing.has(EffectTriggerTiming.Timing.MANUAL):
 		print("[BattleManager] MANUAL trigger timing requires player input, skipped for now")
@@ -329,6 +330,13 @@ static func _sum_card_values(cards: Array) -> int:
 			total += c.get_final_value()
 	return total
 
+static func _recalculate_player_total(context: EffectContext) -> int:
+	var total: int = 0
+	for card in context.get_player_played_cards():
+		var c: CardSnapshot = card as CardSnapshot
+		if c:
+			total += c.get_final_value()
+	return total
 
 static func _sum_enemy_card_values(card_ids: Array, registry) -> int:
 	var total: int = 0

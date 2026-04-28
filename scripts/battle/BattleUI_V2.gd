@@ -207,7 +207,7 @@ func clear_selection() -> void:
 	_playcard_btn.disabled = true
 
 func show_battle_result(result: int) -> void:
-	var result_str = "Victory" if result == 1 else "Defeat"
+	var result_str = "Victory" if result == BattleEnums.EBattleResult.Victory else "Defeat"
 	_state_label.text = "BATTLE END: %s" % result_str
 	print("[BattleUI_V2] Battle result: %s" % result_str)
 

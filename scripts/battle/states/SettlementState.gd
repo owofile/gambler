@@ -7,6 +7,7 @@ var _enemy_cards: Array = []
 var _player_score: int = 0
 var _enemy_score: int = 0
 var _round_winner: String = ""
+var _settlement_report: BattleReport = null
 
 func _init(core: BattleCore) -> void:
 	super._init(core)
@@ -20,6 +21,17 @@ func enter() -> void:
 	var result = _core.calculate_settlement(_player_cards, _enemy_cards)
 	_player_score = result.get("player_total", 0)
 	_enemy_score = result.get("enemy_total", 0)
+
+	_settlement_report = result.get("report")
+	if _settlement_report:
+		var cards_to_remove = _settlement_report.get_cards_to_remove()
+		var delayed_destroy = _settlement_report.get_delayed_destroy_ids()
+		var cards_to_add = _settlement_report.get_cards_to_add()
+		for cid in delayed_destroy:
+			if not cards_to_remove.has(cid):
+				cards_to_remove.append(cid)
+		_core.record_settlement_cards(cards_to_remove, cards_to_add)
+		print("[SettlementState] Settlement report: remove=%d, add=%d" % [cards_to_remove.size(), cards_to_add.size()])
 
 	if _player_score > _enemy_score:
 		_round_winner = "player"
