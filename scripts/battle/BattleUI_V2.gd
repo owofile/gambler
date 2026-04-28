@@ -128,7 +128,16 @@ func _create_card_widgets() -> void:
 
 		var widget = scene.instantiate()
 		widget.position = Vector2(card_start_x + i * card_spacing, card_start_y)
-		widget.setup(card.get_prototype_id(), card.get_card_id(), _get_card_value(card))
+
+		var card_info = _get_card_full_info(card)
+		widget.setup(
+			card.get_prototype_id(),
+			card.get_card_id(),
+			card_info.value,
+			card_info.name,
+			card_info.card_class,
+			card_info.effects
+		)
 		widget.card_clicked.connect(_on_card_widget_clicked.bind(i))
 		widget.card_hovered.connect(_on_card_hovered)
 		widget.card_unhovered.connect(_on_card_unhovered)
@@ -137,13 +146,25 @@ func _create_card_widgets() -> void:
 		add_child(widget)
 		_card_widgets.append(widget)
 
-func _get_card_value(card: CardInstance) -> int:
+func _get_card_full_info(card: CardInstance) -> Dictionary:
+	var info = {"value": 0, "name": "", "card_class": "", "effects": ""}
+
 	if not _data_manager:
-		return 0
+		print("[DEBUG] _data_manager is null")
+		return info
+
 	var prototype = _data_manager.card_registry.get_prototype(card.get_prototype_id())
-	if prototype:
-		return card.get_total_value(prototype)
-	return 0
+	if not prototype:
+		print("[DEBUG] prototype is null for: ", card.get_prototype_id())
+		return info
+
+	info.value = card.get_total_value(prototype)
+	info.name = prototype.prototype_id
+	info.card_class = CardData.class_name_to_string(prototype.card_class)
+	info.effects = ", ".join(prototype.effect_ids) if not prototype.effect_ids.is_empty() else ""
+
+	print("[DEBUG] card info - value=%d, name=%s, class=%s" % [info.value, info.name, info.card_class])
+	return info
 
 func _clear_card_widgets() -> void:
 	for widget in _card_widgets:

@@ -9,6 +9,9 @@ signal card_unhovered(card_id: String)
 @export var card_id: String = ""
 @export var prototype_id: String = ""
 @export var card_value: int = 0
+@export var card_name: String = ""
+@export var card_class: String = ""
+@export var card_effects: String = ""
 
 var _is_selected: bool = false
 var _is_hovered: bool = false
@@ -16,23 +19,39 @@ var _is_enabled: bool = false
 
 var _sprite: Sprite2D = null
 var _value_label: Label = null
-var _hover_label: Label = null
+var _hover_info: PanelContainer = null
+var _hover_name: Label = null
+var _hover_value: Label = null
+var _hover_class: Label = null
+var _hover_effects: Label = null
 var _animation_registry: Node = null
 
 func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	mouse_filter = MOUSE_FILTER_STOP
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 
 	_sprite = get_node_or_null("CardContainer/Sprite")
-	_value_label = get_node_or_null("ValueLabel")
-	_hover_label = get_node_or_null("HoverInfo")
+	_value_label = get_node_or_null("BottomArea/ValueLabel")
+	_hover_info = get_node_or_null("HoverInfo")
+	_hover_name = get_node_or_null("HoverInfo/VBox/NameLabel")
+	_hover_value = get_node_or_null("HoverInfo/VBox/ValueInfoLabel")
+	_hover_class = get_node_or_null("HoverInfo/VBox/ClassLabel")
+	_hover_effects = get_node_or_null("HoverInfo/VBox/EffectsLabel")
 	_is_enabled = true
 
-func setup(proto_id: String, instance_id: String, value: int) -> void:
+	print("[CardWidget] Ready - card_id=%s, prototype_id=%s" % [card_id, prototype_id])
+
+func setup(proto_id: String, instance_id: String, value: int, name: String = "", card_class_name: String = "", effects: String = "") -> void:
 	prototype_id = proto_id
 	card_id = instance_id
 	card_value = value
+	card_name = name
+	card_class = card_class_name
+	card_effects = effects
 	_update_display()
+	print("[CardWidget] Setup - id=%s, value=%d, name=%s" % [instance_id, value, name])
 
 func _get_animation_registry() -> Node:
 	if _animation_registry == null:
@@ -83,7 +102,7 @@ func _build_animation_config(event_name: String) -> Dictionary:
 		"selected":
 			return {"to": position + Vector2(0, -50), "duration": 0.3}
 		"particle":
-			return {"particle_count": card_value, "spawn_position": global_position, "color": Color.YELLOW}
+			return {"particle_count": card_value if card_value > 0 else 10, "spawn_position": global_position, "color": Color.YELLOW}
 	return {}
 
 func set_enabled(enabled: bool) -> void:
@@ -111,15 +130,22 @@ func _modulate_by_state() -> void:
 
 func _update_display() -> void:
 	if _value_label:
-		_value_label.text = str(card_value)
-	if _hover_label:
-		_hover_label.text = prototype_id
+		_value_label.text = str(card_value) if card_value > 0 else "-"
+	if _hover_name:
+		_hover_name.text = card_name if not card_name.is_empty() else prototype_id
+	if _hover_value:
+		_hover_value.text = "Value: %d" % card_value
+	if _hover_class:
+		_hover_class.text = "Class: %s" % card_class
+	if _hover_effects:
+		_hover_effects.text = "Effects: %s" % card_effects if not card_effects.is_empty() else "Effects: None"
 
 func _on_mouse_entered() -> void:
 	if not _is_enabled:
 		return
 	_is_hovered = true
 	_modulate_by_state()
+	_show_hover_info(true)
 	play_animation("hover")
 	card_hovered.emit(card_id)
 
@@ -128,7 +154,12 @@ func _on_mouse_exited() -> void:
 		return
 	_is_hovered = false
 	_modulate_by_state()
+	_show_hover_info(false)
 	card_unhovered.emit(card_id)
+
+func _show_hover_info(show: bool) -> void:
+	if _hover_info:
+		_hover_info.visible = show
 
 func _on_gui_input(event: InputEvent) -> void:
 	if not _is_enabled:
