@@ -658,6 +658,109 @@ func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 - [ ] 组合动画队列（3张牌飞向出牌区）
 - [ ] 动画编辑器工具
 - [ ] 动画优先级/打断机制
+- [ ] **PropertyTweenAnimation**（属性动画泛化）
+
+---
+
+## 12.5 扩展性规划：属性动画
+
+### 12.5.1 问题背景
+
+当前架构每种动画效果需要新建一个类：
+- 新增 Shader 效果 → 新建 `ShaderAnimation`
+- 新增颜色变化 → 新建 `ColorAnimation`
+- 新增任意 Node 属性动画 → 继续新建类...
+
+这导致：
+- 类数量膨胀
+- 复用性低（BounceAnimation 的逻辑无法给 scale 动画复用）
+- 新效果需要改代码
+
+### 12.5.2 解决方案：PropertyTweenAnimation
+
+一个类，通过配置描述动画，复用所有 Tween 逻辑：
+
+```gdscript
+class_name PropertyTweenAnimation
+extends BaseAnimation
+
+## config 格式
+{
+    "tweens": [
+        {"property": "position", "to": Vector2(100, 200), "duration": 0.3},
+        {"property": "scale", "to": Vector2(1.2, 1.2), "duration": 0.2},
+        {"property": "modulate", "to": Color.RED, "duration": 0.1},
+        {"property": "material:shader_param/intensity", "to": 1.0, "duration": 0.5}
+    ],
+    "mode": "parallel",  # 或 "sequential"
+    "ease": Tween.EASE_OUT
+}
+```
+
+### 12.5.3 解决的问题
+
+| 需求 | 当前方案 | PropertyTweenAnimation |
+|------|----------|------------------------|
+| 移动位置 | MoveAnimation | `"position"` |
+| 缩放 | 需新类 | `"scale"` |
+| 变色 | 需新类 | `"modulate"` |
+| Shader效果 | 需新类 | `"material:shader_param/x"` |
+| 组合动画 | SequentialAnimation | 一个 config 搞定 |
+
+### 12.5.4 实现要点
+
+```gdscript
+func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
+    super.play(target, config, on_complete)
+
+    var tweens_config = config.get("tweens", [])
+    var mode = config.get("mode", "parallel")
+    var ease = config.get("ease", Tween.EASE_OUT)
+
+    var tween = target.create_tween()
+
+    for tc in tweens_config:
+        var prop = tc.get("property", "")
+        var to_val = tc.get("to")
+        var dur = tc.get("duration", 0.3)
+
+        if mode == "sequential":
+            tween.chain().tween_property(target, prop, to_val, dur).set_ease(ease)
+        else:
+            tween.set_parallel(true)
+            tween.tween_property(target, prop, to_val, dur).set_ease(ease)
+
+    tween.chain().tween_callback(_on_complete)
+    _is_playing = true
+```
+
+### 12.5.5 设计原则
+
+1. **保持兼容**：新增类不影响现有 GlowAnimation、BounceAnimation 等
+2. **OOP 模块化**：PropertyTweenAnimation 继承 BaseAnimation，复用状态管理
+3. **配置驱动**：新效果不需要写类，只需配置
+4. **渐进增强**：原有专用动画类保留，业务代码可逐步迁移到配置
+
+### 12.5.6 使用示例
+
+```gdscript
+## CardWidget 触发
+card_widget.play_animation("property", {
+    "tweens": [
+        {"property": "position", "to": Vector2(100, 200), "duration": 0.3},
+        {"property": "scale", "to": Vector2(1.5, 1.5), "duration": 0.15, "ease": Tween.EASE_IN}
+    ],
+    "mode": "sequential"
+})
+
+## CardData 预定义
+card_data.animation_config = {
+    "click": {
+        "type": "property",
+        "tweens": [...]
+    }
+}
+```
 
 ---
 
