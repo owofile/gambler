@@ -27,6 +27,12 @@ var _battle_report: BattleReport = null
 var _settlement_cards_to_remove: Array = []
 var _settlement_cards_to_add: Array = []
 
+func get_settlement_cards_to_remove() -> Array:
+	return _settlement_cards_to_remove.duplicate()
+
+func get_settlement_cards_to_add() -> Array:
+	return _settlement_cards_to_add.duplicate()
+
 func initialize(card_manager: Node, data_manager: Node, ui: CanvasLayer) -> void:
 	_card_manager = card_manager
 	_data_manager = data_manager
@@ -209,3 +215,15 @@ func ui_clear_selection() -> void:
 func ui_show_battle_result(result: int) -> void:
 	if _ui and _ui.has_method("show_battle_result"):
 		_ui.show_battle_result(result)
+
+signal destroy_animation_requested(cards_to_destroy: Array)
+
+func ui_play_destroy_animation(card_ids: Array, callback: Callable) -> void:
+	if _ui and _ui.has_method("play_destroy_animation"):
+		_ui.play_destroy_animation(card_ids, callback)
+	else:
+		callback.call()
+		apply_settlement_cards()
+
+func on_destroy_animation_complete() -> void:
+	apply_settlement_cards()

@@ -221,6 +221,29 @@ func enable_selection(enabled: bool) -> void:
 func update_score_display(player_wins: int, enemy_wins: int, target: int) -> void:
 	_score_label.text = "Player: %d/%d | Enemy: %d/%d" % [player_wins, target, enemy_wins, target]
 
+func play_destroy_animation(card_ids: Array, on_complete: Callable) -> void:
+	if card_ids.is_empty():
+		on_complete.call()
+		return
+
+	var widgets_to_destroy: Array = []
+	for card_id in card_ids:
+		for i in range(_all_card_ids.size()):
+			if _all_card_ids[i] == card_id and i < _card_widgets.size():
+				widgets_to_destroy.append(_card_widgets[i])
+
+	if widgets_to_destroy.is_empty():
+		on_complete.call()
+		return
+
+	var pending = widgets_to_destroy.size()
+	for widget in widgets_to_destroy:
+		widget.play_animation("shrink_destroy", func():
+			pending -= 1
+			if pending <= 0:
+				on_complete.call()
+		)
+
 func _on_card_widget_clicked(card_id: String, index: int) -> void:
 	if not _selection_enabled:
 		return

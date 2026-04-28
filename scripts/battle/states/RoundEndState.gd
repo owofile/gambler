@@ -2,8 +2,8 @@
 class_name RoundEndState
 extends BattleState
 
-var _consumed_cards: Array = []
-var _added_cards: Array = []
+var _destroy_card_ids: Array = []
+var _add_card_ids: Array = []
 
 func _init(core: BattleCore) -> void:
 	super._init(core)
@@ -12,22 +12,12 @@ func _init(core: BattleCore) -> void:
 func enter() -> void:
 	_core.notify_state_changed(_state_name)
 
-	_core.apply_settlement_cards()
+	# Get cards marked for destruction from settlement (self_destroy, delayed_destroy, etc.)
+	# These were recorded by SettlementState.record_settlement_cards()
+	_destroy_card_ids = _core.get_settlement_cards_to_remove()
+	_add_card_ids = _core.get_settlement_cards_to_add()
 
-	var player_cards = _core.get_current_player_cards()
-	var current_deck_size = _core.get_deck_size()
-
-	_consumed_cards = _core.get_deck_policy().on_cards_consumed(player_cards, current_deck_size)
-	_added_cards = _core.get_deck_policy().on_round_start(
-		current_deck_size - _consumed_cards.size(),
-		_core.get_config().cards_per_round
-	)
-
-	for card_id in _consumed_cards:
-		_core.remove_card_from_deck(card_id)
-
-	for proto_id in _added_cards:
-		_core.add_card_to_deck(proto_id)
+	print("[RoundEndState] Settlement destroy: %d cards, add: %d cards" % [_destroy_card_ids.size(), _add_card_ids.size()])
 
 	_core.ui_clear_selection()
 	play_animation("round_end")
@@ -39,6 +29,26 @@ func on_animation_complete() -> void:
 	call_deferred("_transition_to_next")
 
 func _transition_to_next() -> void:
+	if _destroy_card_ids.is_empty():
+		_apply_settlement_and_transition()
+	else:
+		_core.ui_play_destroy_animation(_destroy_card_ids, _on_destroy_complete)
+
+func _on_destroy_complete() -> void:
+	_apply_settlement_and_transition()
+
+func _apply_settlement_and_transition() -> void:
+	for card_id in _destroy_card_ids:
+		_core.remove_card_from_deck(card_id)
+		print("[RoundEndState] Destroyed card: %s" % card_id)
+
+	for proto_id in _add_card_ids:
+		_core.add_card_to_deck(proto_id)
+		print("[RoundEndState] Added card: %s" % proto_id)
+
+	_destroy_card_ids.clear()
+	_add_card_ids.clear()
+
 	if _core.check_battle_end():
 		_core.transition_to(BattleEndState)
 	else:
