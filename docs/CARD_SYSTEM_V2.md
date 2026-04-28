@@ -1,6 +1,6 @@
 # 卡牌系统 V2 设计文档
 
-> **版本**: v1.0
+> **版本**: v1.1
 > **日期**: 2026-04-28
 
 ---
@@ -29,8 +29,13 @@ BattleUI_V2
 ├── CardWidget (预制体 x6)
 │   ├── CardContainer
 │   │   └── Sprite (卡牌贴图)
-│   ├── ValueLabel (数值)
-│   └── HoverInfo (悬停信息)
+│   ├── ValueLabel (数值显示)
+│   └── HoverInfo (悬停信息面板)
+│       └── VBox
+│           ├── NameLabel
+│           ├── ValueInfoLabel
+│           ├── ClassLabel
+│           └── EffectsLabel
 └── Control (按钮、分数显示等)
 ```
 
@@ -44,9 +49,11 @@ CardMgr.get_all_cards()
         ↓
 BattleUI_V2._create_card_widgets()
         ↓
-CardWidget.setup(proto_id, instance_id, value)
+BattleUI_V2._get_card_full_info(card)  # 获取完整信息
         ↓
-用户交互 → card_clicked.emit()
+CardWidget.setup(proto_id, instance_id, value, name, class, effects)
+        ↓
+用户交互 → card_clicked.emit() / _show_hover_info(true)
         ↓
 BattleCore.on_selection_confirmed()
 ```
@@ -62,6 +69,9 @@ BattleCore.on_selection_confirmed()
 | `card_id` | String | 卡牌实例ID |
 | `prototype_id` | String | 卡牌原型ID |
 | `card_value` | int | 卡牌数值 |
+| `card_name` | String | 卡牌名称 |
+| `card_class` | String | 卡牌类型 |
+| `card_effects` | String | 卡牌效果描述 |
 
 | 信号 | 参数 | 说明 |
 |------|------|------|
@@ -71,11 +81,39 @@ BattleCore.on_selection_confirmed()
 
 | 方法 | 说明 |
 |------|------|
-| `setup(proto_id, instance_id, value)` | 初始化卡牌 |
+| `setup(proto_id, instance_id, value, name, class, effects)` | 初始化卡牌 |
 | `set_enabled(bool)` | 启用/禁用交互 |
 | `set_selected(bool)` | 设置选中状态 |
+| `play_animation(event_name, on_complete)` | 播放动画 |
+| `_show_hover_info(bool)` | 显示/隐藏悬停信息面板 |
 
-### 4.2 BattleUI_V2
+#### 重要：显示更新时机
+
+`setup()` 负责设置所有卡牌数据（值、名称、类型、效果），但 `_update_display()` 依赖 `_ready()` 中获取的节点引用（`_value_label`、`_hover_*` 等）。
+
+**正确流程**：
+1. `_ready()` 执行 → 获取节点引用
+2. `setup()` 调用 → 设置数据
+3. `_update_display()` 执行 → 更新 Label 文本
+
+如果在 `_ready()` 中调用 `_update_display()`，而 setup 还未被调用，则显示的是默认值（0）。
+
+---
+
+### 4.2 HoverInfo 面板
+
+鼠标悬停时显示卡牌详细信息：
+
+| 节点 | 内容 |
+|------|------|
+| `HoverInfo/VBox/NameLabel` | 卡牌名称 |
+| `HoverInfo/VBox/ValueInfoLabel` | 数值 |
+| `HoverInfo/VBox/ClassLabel` | 类型 |
+| `HoverInfo/VBox/EffectsLabel` | 效果 |
+
+---
+
+### 4.3 BattleUI_V2
 
 | 方法 | 说明 |
 |------|------|
@@ -160,7 +198,36 @@ BattleCore.on_selection_confirmed()
 
 ---
 
-## 9. 待完成项
+## 10. 经验总结
+
+### 10.1 显示更新时机
+
+**问题**：卡牌数值显示为 0，但数据实际是正确的。
+
+**原因**：
+- `_ready()` 在实例化时立即执行，此时节点引用已建立
+- `setup()` 稍后被调用，设置 `card_value` 和其他数据
+- `_update_display()` 在 `setup()` 中被调用，更新 Label 文本
+- 如果在 `_ready()` 中过早调用 `_update_display()`，数据尚未设置
+
+**教训**：`_update_display()` 依赖外部传入的数据，应在 `setup()` 中调用，而非 `_ready()` 中。
+
+### 10.2 节点获取时机
+
+`tsecn` 中定义的节点引用需要在 `_ready()` 中获取，因为：
+- 实例化时节点尚未加入场景树
+- `_ready()` 时所有子节点已可用
+- 获取后保存为成员变量供后续使用
+
+### 10.3 布局配置注意事项
+
+- `PanelContainer` 的 `custom_minimum_size` 控制点击区域
+- `ValueLabel` 等使用绝对偏移（`offset_*`）而非 `layout_mode = 2`
+- `HoverInfo` 使用锚点 `anchors_preset = 1`（右对齐）配合负偏移定位
+
+---
+
+## 11. 待完成项
 
 - [ ] 完善卡牌贴图系统（根据 prototype_id 加载不同贴图）
 - [ ] 添加卡牌入场/退场动画
