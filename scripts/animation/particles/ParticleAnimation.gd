@@ -9,19 +9,15 @@ var _spawned_nodes: Array = []
 func _init():
 	_animation_name = "Particle"
 
-func play(config: Dictionary, on_complete: Callable) -> void:
-	super.play(config)
-	var target = config.get("target", null)
+func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
+	super.play(target, config, on_complete)
 	var particle_count = config.get("particle_count", 10)
 	var particle_scene = config.get("particle_scene", "")
-	var spawn_position = config.get("spawn_position", Vector2.ZERO)
+	var spawn_position = config.get("spawn_position", target.global_position if target else Vector2.ZERO)
 	var direction = config.get("direction", Vector2.RIGHT)
 	var spread = config.get("spread", 30.0)
 	var color = config.get("color", Color.WHITE)
 	var particle_lifetime = config.get("lifetime", 1.0)
-
-	if not target:
-		target = get_parent()
 
 	if not target:
 		_on_complete.call()

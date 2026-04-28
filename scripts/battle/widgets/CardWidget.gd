@@ -21,7 +21,7 @@ var _animation_registry: Node = null
 
 func _ready() -> void:
 	gui_input.connect(_on_gui_input)
-	_mouse_filter = MOUSE_FILTER_STOP
+	mouse_filter = MOUSE_FILTER_STOP
 
 	_sprite = get_node_or_null("CardContainer/Sprite")
 	_value_label = get_node_or_null("ValueLabel")
@@ -47,20 +47,23 @@ func _get_animation_registry() -> Node:
 func play_animation(event_name: String, on_complete: Callable = Callable()) -> void:
 	var registry = _get_animation_registry()
 	if registry == null:
-		on_complete.call()
+		if on_complete.is_valid():
+			on_complete.call()
 		return
 
 	var anim_name = _get_animation_name_for(event_name)
 	if anim_name.is_empty():
-		on_complete.call()
+		if on_complete.is_valid():
+			on_complete.call()
 		return
 
 	var anim = registry.get_animation(anim_name)
 	if anim:
 		var config = _build_animation_config(event_name)
-		anim.play(config, on_complete)
+		anim.play(self, config, on_complete)
 	else:
-		on_complete.call()
+		if on_complete.is_valid():
+			on_complete.call()
 
 func _get_animation_name_for(event_name: String) -> String:
 	match event_name:
@@ -74,14 +77,14 @@ func _get_animation_name_for(event_name: String) -> String:
 func _build_animation_config(event_name: String) -> Dictionary:
 	match event_name:
 		"hover":
-			return {"target": self, "duration": 0.3}
+			return {"duration": 0.3}
 		"click":
-			return {"target": self, "duration": 0.15, "loops": 2}
+			return {"duration": 0.15, "loops": 2}
 		"selected":
-			return {"target": self, "to": position + Vector2(0, -50), "duration": 0.3}
+			return {"to": position + Vector2(0, -50), "duration": 0.3}
 		"particle":
 			return {"particle_count": card_value, "spawn_position": global_position, "color": Color.YELLOW}
-	return {"target": self}
+	return {}
 
 func set_enabled(enabled: bool) -> void:
 	_is_enabled = enabled

@@ -2,7 +2,7 @@
 ##
 ## 提供通用功能：计时器管理、子节点管理
 class_name BaseAnimation
-extends IAnimation
+extends Node
 
 var _is_playing: bool = false
 var _animation_name: String = "BaseAnimation"
@@ -11,11 +11,12 @@ var _on_complete: Callable = Callable()
 var _target_node: Node = null
 
 func _init():
-	pass
+	_animation_name = "BaseAnimation"
 
-func play(config: Dictionary, on_complete: Callable) -> void:
+func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
 	_is_playing = true
 	_on_complete = on_complete
+	_target_node = target
 
 func stop() -> void:
 	_is_playing = false

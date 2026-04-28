@@ -5,10 +5,9 @@ extends BaseAnimation
 func _init():
 	_animation_name = "Shake"
 
-func play(config: Dictionary, on_complete: Callable) -> void:
-	super.play(config)
-	var target = config.get("target", null)
-	var offset = config.get("offset", Vector2(5, 5)
+func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
+	super.play(target, config, on_complete)
+	var offset = config.get("offset", Vector2(5, 5))
 	var duration = config.get("duration", 0.1)
 	var loops = config.get("loops", 3)
 

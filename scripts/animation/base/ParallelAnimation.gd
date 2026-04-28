@@ -10,17 +10,15 @@ var _pending_count: int = 0
 func _init():
 	_animation_name = "Parallel"
 
-## 添加动画
 func add(anim: IAnimation) -> void:
 	_animations.append(anim)
 
-## 清除所有动画
 func clear() -> void:
 	_animations.clear()
 	_pending_count = 0
 
-func play(config: Dictionary, on_complete: Callable) -> void:
-	super.play(config)
+func play(target: Node, config: Dictionary, on_complete: Callable) -> void:
+	super.play(target, config, on_complete)
 	_pending_count = _animations.size()
 
 	if _animations.is_empty():
@@ -28,7 +26,7 @@ func play(config: Dictionary, on_complete: Callable) -> void:
 		return
 
 	for anim in _animations:
-		anim.play(config, _on_child_complete)
+		anim.play(target, config, _on_child_complete)
 
 	_is_playing = true
 
