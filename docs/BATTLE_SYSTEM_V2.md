@@ -486,15 +486,82 @@ scripts/battle/
 [BattleStressTest] Added card: card_rusty_sword (id: xxx)
 [BattleStressTest] State changed: PlayerSelect
 [BattleStressTest] PlayerSelect - hand size: 6
-[BattleStressTest] Selected[0]: xxx
+[BattleStressTest]   Selected[0]: xxx (random)
 [BattleStressTest] Calling on_selection_confirmed with 3 cards...
 [BattleStressTest] State changed: EnemyReveal
 [BattleStressTest] State changed: Settlement
 [BattleStressTest] State changed: RoundEnd
 [BattleStressTest] RoundEnd #1 - remaining cards: 6
-[BattleStressTest]   Score: Player 0 vs Enemy 1 (target: 3)
+[BattleStressTest]   Score: Player 1 vs Enemy 0 (target: 3)
 ========================================
 [BattleStressTest] BATTLE COMPLETED!
-[BattleStressTest] Result: 1 (Defeat)
+[BattleStressTest] Result: 0 (Victory)
 ========================================
 ```
+
+---
+
+## 15. 卡牌系统设计
+
+### 15.1 卡牌选择模式
+
+Battle System V2 支持两种卡牌选择模式：
+
+| 模式 | 配置 | 说明 |
+|------|------|------|
+| **随机** | `enemy_deck_random = true` | 每轮随机选择卡牌 |
+| **顺序循环** | `enemy_deck_random = false` | 按 `enemy_deck_order` 顺序轮换 |
+
+### 15.2 玩家卡牌选择
+
+测试脚本 `BattleStressTest` 支持两种玩家选牌模式：
+
+```gdscript
+var _random_player_cards: bool = true  # 配置开关
+
+if _random_player_cards:
+    # 随机选择：洗牌后取前N张
+    var available_indices: Array = []
+    for i in range(hand.size()):
+        available_indices.append(i)
+    available_indices.shuffle()
+    for i in range(_config.cards_per_round):
+        selected_ids.append(hand[available_indices[i]].get_card_id())
+else:
+    # 固定选择：总是前N张
+    for i in range(_config.cards_per_round):
+        selected_ids.append(hand[i].get_card_id())
+```
+
+### 15.3 敌方卡牌生成
+
+`BattleConfig.get_enemy_cards(count)` 实现：
+
+```gdscript
+func get_enemy_cards(count: int) -> Array:
+    if enemy_deck_random:
+        # 随机模式：从卡组中随机抽取，可能重复
+        for i in range(count):
+            var random_idx = randi() % enemy_deck_order.size()
+            result.append(enemy_deck_order[random_idx])
+    else:
+        # 顺序模式：循环遍历
+        for i in range(count):
+            result.append(enemy_deck_order[_enemy_deck_index % enemy_deck_order.size()])
+            _enemy_deck_index += 1
+```
+
+### 15.4 扩展方式
+
+如需更复杂的卡牌选择逻辑，可实现策略模式：
+
+```gdscript
+class_name IEnemyCardSelector
+extends RefCounted
+func select_cards(deck: Array, count: int) -> Array
+```
+
+内置实现：
+- `RandomEnemyCardSelector` - 随机选择
+- `SequentialEnemyCardSelector` - 顺序选择
+- `WeightedEnemyCardSelector` - 加权随机（根据卡牌强度）

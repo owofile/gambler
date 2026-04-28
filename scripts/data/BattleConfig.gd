@@ -38,6 +38,9 @@ const DEFAULT_MIN_DECK_SIZE := 3
 ## Enemy deck in fixed order (will cycle)
 @export var enemy_deck_order: Array = []
 
+## If true, enemy will randomly select cards each round instead of cycling
+@export var enemy_deck_random: bool = false
+
 ## Enemy data reference
 var enemy_data: EnemyData = null
 
@@ -66,15 +69,24 @@ func _init(
 	enemy_deck_order = p_enemy_deck.duplicate() if p_enemy_deck else []
 
 ## Get next enemy cards for a round
+## If enemy_deck_random is true, randomly selects cards
+## Otherwise, cycles through enemy_deck_order in order
 func get_enemy_cards(count: int) -> Array:
 	if enemy_deck_order.size() == 0:
 		return []
 
 	var result: Array = []
-	for i in range(count):
-		var card_id = enemy_deck_order[_enemy_deck_index % enemy_deck_order.size()]
-		result.append(card_id)
-		_enemy_deck_index += 1
+	if enemy_deck_random:
+		# Random selection with possible repeats
+		for i in range(count):
+			var random_idx = randi() % enemy_deck_order.size()
+			result.append(enemy_deck_order[random_idx])
+	else:
+		# Fixed order cycling
+		for i in range(count):
+			var card_id = enemy_deck_order[_enemy_deck_index % enemy_deck_order.size()]
+			result.append(card_id)
+			_enemy_deck_index += 1
 
 	return result
 

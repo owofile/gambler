@@ -31,6 +31,7 @@ var _player_wins: int = 0
 var _enemy_wins: int = 0
 var _round_count: int = 0
 var _max_rounds: int = 20
+var _random_player_cards: bool = true
 
 func _ready() -> void:
 	print("========================================")
@@ -79,6 +80,8 @@ func _setup_battle() -> void:
 	_config.cards_per_round = 3
 	_config.initial_hand_size = 6
 	_config.enemy_data = _enemy_data
+	_config.enemy_deck_order = _enemy_deck.duplicate()
+	_config.enemy_deck_random = true  # Enable random enemy card selection
 	_config.deck_policy = NoConsumptionPolicy.new()
 
 	print("[BattleStressTest] Starting battle...")
@@ -108,10 +111,23 @@ func _process_player_selection() -> void:
 		return
 
 	var selected_ids: Array = []
-	for i in range(_config.cards_per_round):
-		var card = hand[i]
-		selected_ids.append(card.get_card_id())
-		print("[BattleStressTest]   Selected[%d]: %s" % [i, card.get_card_id()])
+	if _random_player_cards:
+		# Random selection
+		var available_indices: Array = []
+		for i in range(hand.size()):
+			available_indices.append(i)
+		available_indices.shuffle()
+		for i in range(_config.cards_per_round):
+			var idx = available_indices[i]
+			var card = hand[idx]
+			selected_ids.append(card.get_card_id())
+			print("[BattleStressTest]   Selected[%d]: %s (random)" % [i, card.get_card_id()])
+	else:
+		# Fixed selection (first N cards)
+		for i in range(_config.cards_per_round):
+			var card = hand[i]
+			selected_ids.append(card.get_card_id())
+			print("[BattleStressTest]   Selected[%d]: %s" % [i, card.get_card_id()])
 
 	print("[BattleStressTest] Calling on_selection_confirmed with %d cards..." % selected_ids.size())
 	_battle_core.on_selection_confirmed(selected_ids)
