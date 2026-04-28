@@ -77,6 +77,11 @@ func has_cost() -> bool:
 func has_effect(effect_id: String) -> bool:
 	return _effect_ids.has(effect_id)
 
+func add_delta_value(delta: int) -> void:
+	_final_value += delta
+	if _final_value < 0:
+		_final_value = 0
+
 func clone() -> CardSnapshot:
 	var new_snapshot = CardSnapshot.new()
 	new_snapshot.set_card_id(_instance_id)

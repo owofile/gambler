@@ -693,3 +693,178 @@ Buff 的存档只存以下字段：
 | `TargetSelector` 分离 | 目标选择逻辑与效果逻辑解耦 |
 | Registry 驱动 | 所有效果配置在 JSON，程序不硬编码 |
 | Phase 递增 | 每个 Phase 独立可运行，不破坏现有功能 |
+
+---
+
+## 14. 效果触发时机系统 (v2.0)
+
+### 14.1 触发时机枚举
+
+```gdscript
+class_name EffectTriggerTiming
+extends RefCounted
+
+enum Timing {
+    IMMEDIATE = 0,      # 即时 - 点数计算后立即执行
+    SEQUENTIAL = 1,      # 顺序 - 按出牌顺序逐张执行
+    DELAYED_NEXT = 2,   # 延迟下一张 - 效果作用于下一张出的牌
+    DELAYED_ROUND = 3,   # 延迟回合 - 下回合生效
+    MANUAL = 4           # 手动 - 需要玩家选择目标
+}
+```
+
+### 14.2 触发时机说明
+
+| 时机 | 值 | 说明 | 执行阶段 |
+|------|---|------|----------|
+| `IMMEDIATE` | 0 | 即时效果，点点数计算后立即执行 | 基础点数计算后 |
+| `SEQUENTIAL` | 1 | 按出牌顺序逐张执行效果 | 每张牌触发一次 |
+| `DELAYED_NEXT` | 2 | 效果作用于下一张出的牌 | 当前牌效果作用于下一张 |
+| `DELAYED_ROUND` | 3 | 效果延迟到下回合生效 | 下回合开始时 |
+| `MANUAL` | 4 | 需要玩家手动选择目标 | 等待玩家输入 |
+
+### 14.3 扩展的 IEffectHandler 接口
+
+```gdscript
+class_name IEffectHandler
+extends RefCounted
+
+## 获取效果触发时机
+func get_trigger_timing() -> int:
+    return EffectTriggerTiming.Timing.IMMEDIATE
+
+## 获取此效果作用于哪些卡牌
+## context: 战斗上下文
+## source_card_id: 拥有此效果的卡牌ID
+## 返回: 卡牌实例ID数组
+func get_target_card_ids(context: EffectContext, source_card_id: String) -> Array:
+    return [source_card_id]  # 默认只作用于自己
+
+## 执行效果（修改 context 中的总点数等）
+func apply(context: EffectContext) -> void:
+    pass
+
+## 对特定卡牌执行效果（修改单张卡的点数）
+func apply_to_card(context: EffectContext, target_card_id: String) -> void:
+    pass
+
+## 获取优先级（同一 Timing 内排序）
+func get_priority() -> int:
+    return EffectEnums.EffectPriority.Normal
+
+## 获取效果描述
+func get_description() -> String:
+    return ""
+```
+
+### 14.4 出牌顺序追踪
+
+EffectContext 新增字段：
+
+```gdscript
+var _selection_order: Array = []  # 出牌顺序 ["id1", "id2", "id3"]
+
+func get_selection_order() -> Array
+func set_selection_order(order: Array) -> void
+func get_next_card_in_order(current_id: String) -> String  # 获取下一张
+func get_card_order_index(card_id: String) -> int
+func get_card_snapshot_by_id(card_id: String) -> CardSnapshot
+```
+
+### 14.5 执行流程
+
+```
+1. 玩家选择出牌顺序 → selection_order
+2. 计算基础点数 → context._current_player_total
+3. 按触发时机分组执行：
+   a. IMMEDIATE → 立即修改 total
+   b. SEQUENTIAL → 按顺序逐张修改
+   c. DELAYED_NEXT → 当前牌效果作用于下一张
+   d. DELAYED_ROUND → 预约下回合
+   e. MANUAL → 等待玩家选择
+4. 执行代价 (cost)
+5. 比较总点数判定胜负
+```
+
+### 14.6 示例效果实现
+
+#### 14.6.1 即时效果（已有）
+
+```gdscript
+class_name FixedBonusEffect
+extends IEffectHandler
+
+func get_trigger_timing() -> int:
+    return EffectTriggerTiming.Timing.IMMEDIATE
+
+func apply(context: EffectContext) -> void:
+    context.add_player_total(_bonus)
+```
+
+#### 14.6.2 延迟下一张效果（新增）
+
+```gdscript
+class_name BoostNextCardEffect
+extends IEffectHandler
+
+func get_trigger_timing() -> int:
+    return EffectTriggerTiming.Timing.DELAYED_NEXT
+
+## 返回下一张牌的ID
+func get_target_card_ids(context: EffectContext, source_card_id: String) -> Array:
+    var next_card = context.get_next_card_in_order(source_card_id)
+    if not next_card.is_empty():
+        return [next_card]
+    return []
+
+## 不修改 total，而是修改目标牌的 delta
+func apply_to_card(context: EffectContext, target_card_id: String) -> void:
+    var card = context.get_card_snapshot_by_id(target_card_id)
+    if card:
+        card.add_delta_value(_bonus)
+```
+
+### 14.7 CardSnapshot 新增方法
+
+```gdscript
+func add_delta_value(delta: int) -> void:
+    _final_value += delta
+    if _final_value < 0:
+        _final_value = 0
+```
+
+### 14.8 扩展 EffectRegistry
+
+```gdscript
+func get_effects_by_timing(effect_ids_with_source: Array) -> Dictionary:
+    # 返回按触发时机分组的 effects
+    # 格式: {timing: [{"handler": IEffectHandler, "source_id": "card_id"}, ...]}
+```
+
+### 14.9 JSON 配置示例
+
+```json
+{
+    "card_test_boost": {
+        "display_name": "测试增幅牌",
+        "base_value": 5,
+        "effect_ids": ["boost_next_3"]
+    },
+    "card_double_boost": {
+        "display_name": "双重增幅",
+        "base_value": 4,
+        "effect_ids": ["boost_next_3", "boost_next_3"]
+    },
+    "card_instant": {
+        "display_name": "即时增幅",
+        "base_value": 3,
+        "effect_ids": ["fixed_bonus_2"]
+    }
+}
+```
+
+### 14.10 扩展注意事项
+
+1. **向后兼容**：IMMEDIATE 效果与原有逻辑完全兼容
+2. **MANUAL 效果**：目前会在日志中提示跳过，后续需要 UI 层配合实现
+3. **DELAYED_ROUND**：需要 BattleFlowManager 在下回合开始时处理

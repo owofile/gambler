@@ -121,16 +121,24 @@ static func ProcessSelectedCards(
 	var enemy_total: int = _sum_enemy_card_values(enemy_card_ids, card_registry)
 	context.set_current_enemy_total(enemy_total)
 
-	var all_effects: Array = []
+	var selection_order: Array = []
+	for c in player_cards:
+		var card: CardSnapshot = c as CardSnapshot
+		if card:
+			selection_order.append(card.get_card_id())
+	context.set_selection_order(selection_order)
+
+	var effects_with_source: Array = []
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
 		if card:
 			for eff_id in card.get_effect_ids():
-				all_effects.append(eff_id)
+				effects_with_source.append({
+					"effect_id": eff_id,
+					"source_id": card.get_card_id()
+				})
 
-	var sorted_effects: Array = effect_registry.get_effects_sorted_by_priority(all_effects)
-	for effect in sorted_effects:
-		effect.apply(context)
+	_execute_effects_by_timing(context, effect_registry, effects_with_source)
 
 	for c in player_cards:
 		var card: CardSnapshot = c as CardSnapshot
@@ -267,6 +275,32 @@ static func _select_top_cards(deck: DeckSnapshot, count: int) -> Array:
 	for i in range(limit):
 		result.append(sorted_cards[i])
 	return result
+
+
+static func _execute_effects_by_timing(context: EffectContext, effect_registry, effects_with_source: Array) -> void:
+	var by_timing = effect_registry.get_effects_by_timing(effects_with_source)
+
+	if by_timing.has(EffectTriggerTiming.Timing.IMMEDIATE):
+		for item in by_timing[EffectTriggerTiming.Timing.IMMEDIATE]:
+			var handler: IEffectHandler = item["handler"]
+			handler.apply(context)
+
+	if by_timing.has(EffectTriggerTiming.Timing.SEQUENTIAL):
+		for item in by_timing[EffectTriggerTiming.Timing.SEQUENTIAL]:
+			var handler: IEffectHandler = item["handler"]
+			handler.apply(context)
+
+	if by_timing.has(EffectTriggerTiming.Timing.DELAYED_NEXT):
+		for card_id in context.get_selection_order():
+			var next_card = context.get_next_card_in_order(card_id)
+			if not next_card.is_empty():
+				for item in by_timing[EffectTriggerTiming.Timing.DELAYED_NEXT]:
+					var handler: IEffectHandler = item["handler"]
+					if handler.get_target_card_ids(context, card_id).has(next_card):
+						handler.apply_to_card(context, next_card)
+
+	if by_timing.has(EffectTriggerTiming.Timing.MANUAL):
+		print("[BattleManager] MANUAL trigger timing requires player input, skipped for now")
 
 
 static func _select_random_cards(card_ids: Array, count: int) -> Array:

@@ -11,6 +11,8 @@ func _register_all_effects() -> void:
 	_effects["fixed_bonus_3"] = FixedBonusEffect.new(3)
 	_effects["fixed_bonus_5"] = FixedBonusEffect.new(5)
 	_effects["rule_reversal"] = RuleReversalEffect.new()
+	_effects["boost_next_3"] = BoostNextCardEffect.new(3)
+	_effects["boost_next_5"] = BoostNextCardEffect.new(5)
 
 func get_effect(effect_id: String) -> IEffectHandler:
 	if _effects.has(effect_id):
@@ -35,3 +37,27 @@ func get_effects_sorted_by_priority(effect_ids: Array) -> Array:
 		return handler_a.get_priority() < handler_b.get_priority()
 	)
 	return handlers
+
+func get_effects_by_timing(effect_ids_with_source: Array) -> Dictionary:
+	var by_timing: Dictionary = {}
+
+	for item in effect_ids_with_source:
+		var eff_id: String = item["effect_id"]
+		var source_id: String = item["source_id"]
+		var handler = get_effect(eff_id)
+		if handler:
+			var timing = handler.get_trigger_timing()
+			if not by_timing.has(timing):
+				by_timing[timing] = []
+			by_timing[timing].append({
+				"handler": handler,
+				"source_id": source_id
+			})
+
+	for timing in by_timing.keys():
+		var handlers = by_timing[timing]
+		handlers.sort_custom(func(a, b):
+			return a["handler"].get_priority() < b["handler"].get_priority()
+		)
+
+	return by_timing
