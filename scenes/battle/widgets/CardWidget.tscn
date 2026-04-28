@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://ct6c7h38kgacs"]
+
+[ext_resource type="Script" path="res://scripts/battle/widgets/CardWidget.gd" id="1_card_widget"]
+[ext_resource type="Texture2D" uid="uid://ddmc1v2qk3cv8" path="res://assets/cards/backgrounds/logo_antver.png" id="2_card_texture"]
+
+[node name="CardWidget" type="PanelContainer"]
+custom_minimum_size = Vector2(80, 120)
+script = ExtResource("1_card_widget")
+
+[node name="CardContainer" type="Node2D" parent="."]
+
+[node name="Sprite" type="Sprite2D" parent="CardContainer"]
+position = Vector2(40, 60)
+scale = Vector2(0.13, 0.195)
+texture = ExtResource("2_card_texture")
+
+[node name="ValueLabel" type="Label" parent="."]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+
+[node name="HoverInfo" type="Label" parent="."]
+visible = false
+layout_mode = 2
+text = "card_name"
+horizontal_alignment = 1
+autowrap_mode = 2
