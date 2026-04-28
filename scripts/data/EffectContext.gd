@@ -112,9 +112,9 @@ func get_card_order_index(card_id: String) -> int:
 
 func get_card_snapshot_by_id(card_id: String) -> CardSnapshot:
 	for card in _player_played_cards:
-		if card.get_instance_id() == card_id:
+		if card.get_card_id() == card_id:
 			return card
 	for card in _enemy_played_cards:
-		if card.get_instance_id() == card_id:
+		if card.get_card_id() == card_id:
 			return card
 	return null
