@@ -41,6 +41,8 @@ func _ready() -> void:
 	_hover_effects = get_node_or_null("HoverInfo/VBox/EffectsLabel")
 	_is_enabled = true
 
+	_update_display()  # Update display after nodes are available
+
 	print("[CardWidget] Ready - card_id=%s, prototype_id=%s" % [card_id, prototype_id])
 
 func setup(proto_id: String, instance_id: String, value: int, name: String = "", card_class_name: String = "", effects: String = "") -> void:
@@ -51,7 +53,7 @@ func setup(proto_id: String, instance_id: String, value: int, name: String = "",
 	card_class = card_class_name
 	card_effects = effects
 	_update_display()
-	print("[CardWidget] Setup - id=%s, value=%d, name=%s" % [instance_id, value, name])
+	print("[CardWidget] Setup - id=%s, value=%d, name=%s, _value_label=%s" % [instance_id, value, name, _value_label])
 
 func _get_animation_registry() -> Node:
 	if _animation_registry == null:
@@ -129,6 +131,7 @@ func _modulate_by_state() -> void:
 		_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _update_display() -> void:
+	print("[CardWidget] _update_display - card_value=%d, _value_label=%s, _hover_value=%s" % [card_value, _value_label, _hover_value])
 	if _value_label:
 		_value_label.text = str(card_value) if card_value > 0 else "-"
 	if _hover_name:
