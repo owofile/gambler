@@ -14,5 +14,5 @@ func on_cards_consumed(played: Array, current_deck: int) -> Array:
 func can_continue(current_deck: int, hand_size: int) -> bool:
 	return current_deck >= hand_size
 
-func get_name() -> String:
+func get_policy_name() -> String:
 	return "IDeckPolicy"

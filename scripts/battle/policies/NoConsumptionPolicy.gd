@@ -7,3 +7,6 @@ func on_cards_consumed(played: Array, current_deck: int) -> Array:
 
 func get_name() -> String:
 	return "NoConsumption"
+
+func get_policy_name() -> String:
+	return get_name()

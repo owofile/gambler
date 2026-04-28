@@ -10,3 +10,6 @@ func can_continue(current_deck: int, hand_size: int) -> bool:
 
 func get_name() -> String:
 	return "ForceExit"
+
+func get_policy_name() -> String:
+	return get_name()
