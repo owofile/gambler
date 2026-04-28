@@ -1,8 +1,9 @@
 # 战斗模块 v2.0 设计文档
 
-> **版本**: v2.0
+> **版本**: v2.1
 > **日期**: 2026-04-28
 > **模块**: BattleCore, BattleState, BattleUI (Interface), CardDeckManager
+> **状态**: ✅ 测试通过，生产可用
 
 ---
 
@@ -565,3 +566,125 @@ func select_cards(deck: Array, count: int) -> Array
 - `RandomEnemyCardSelector` - 随机选择
 - `SequentialEnemyCardSelector` - 顺序选择
 - `WeightedEnemyCardSelector` - 加权随机（根据卡牌强度）
+
+---
+
+## 16. 测试报告 (2026-04-28)
+
+### 16.1 测试场景
+
+| 测试项 | 场景 | 结果 |
+|--------|------|------|
+| 状态机流转 | `BattleStressTest.tscn` | ✅ PASS |
+| 随机玩家选牌 | `_random_player_cards = true` | ✅ PASS |
+| 随机敌方选牌 | `enemy_deck_random = true` | ✅ PASS |
+| 胜负判定 | 22 > 21 → Player Win | ✅ PASS |
+| 3胜制结束 | Enemy 3 wins → BattleEnd | ✅ PASS |
+| Cost 系统 | `self_destroy` 代价触发 | ✅ PASS |
+| 程序正常退出 | `get_tree().quit()` | ✅ PASS |
+
+### 16.2 测试日志摘要
+
+```
+Round 1: Player 20 vs 21 Enemy → Enemy Win (0-1)
+Round 2: Player 18 vs 21 Enemy → Enemy Win (0-2)
+Round 3: Player 22 vs 21 Enemy → Player Win (1-2)
+Round 4: Player 16 vs 21 Enemy → Enemy Win (1-3) → BATTLE END
+Result: Defeat (Enemy 3 wins)
+```
+
+### 16.3 已验证功能
+
+| 功能 | 状态 | 说明 |
+|------|------|------|
+| BattleCore 状态机 | ✅ | PlayerSelect → EnemyReveal → Settlement → RoundEnd |
+| call_deferred 异步 | ✅ | 解决 stack overflow |
+| 胜负判定修复 | ✅ | SettlementState 自己比较分数 |
+| 随机卡牌选择 | ✅ | 敌方卡牌可重复 |
+| Cost 系统联动 | ✅ | card_vengeance 的 self_destroy 触发 |
+| 20回合限制 | ✅ | 超时强制结束 |
+| battle_completed 信号 | ✅ | 正常发出并处理 |
+
+### 16.4 Bug 修复历史
+
+| Bug | 原因 | 修复 |
+|-----|------|------|
+| Stack overflow | `exit()` → `ui_enable_selection()` → 递归 | 使用 `call_deferred()` |
+| 状态同步执行 | `enter()` 直接调用 `_transition_to_next()` | `on_animation_complete()` + `call_deferred()` |
+| 永远平局 | `result.get("winner")` 返回 nil | SettlementState 自己判断胜负 |
+| 敌方卡组为空 | `get_current_enemy_cards()` 时序问题 | 异步通知 |
+
+---
+
+## 17. 扩展指南
+
+### 17.1 添加新状态
+
+1. 在 `scripts/battle/states/` 创建新状态类：
+```gdscript
+class_name NewState
+extends BattleState
+
+func _init(core: BattleCore) -> void:
+    super._init(core)
+    _state_name = "NewState"
+
+func enter() -> void:
+    _core.notify_state_changed(_state_name)
+    # 业务逻辑
+    play_animation("new_state")
+
+func on_animation_complete() -> void:
+    call_deferred("_transition_to_next")
+
+func _transition_to_next() -> void:
+    _core.transition_to(NextState)
+```
+
+2. 在 `BattleCore.transition_to()` 中切换到新状态
+
+### 17.2 添加新 DeckPolicy
+
+1. 创建策略类实现 `IDeckPolicy`：
+```gdscript
+class_name MyPolicy
+extends IDeckPolicy
+
+func on_round_start(current_deck: int, hand_size: int) -> Array:
+    # 返回要添加的卡牌 prototype_id 数组
+    return []
+
+func on_cards_consumed(played: Array, current_deck: int) -> Array:
+    # 返回要消耗的卡牌 instance_id 数组
+    return []
+
+func can_continue(current_deck: int, hand_size: int) -> bool:
+    return current_deck >= hand_size
+```
+
+2. 在 `BattleConfig.deck_policy` 中设置
+
+### 17.3 添加卡牌选择器
+
+1. 实现 `select_cards(deck: Array, count: int) -> Array`
+2. 在 `BattleConfig` 中添加选择器引用
+3. 修改 `get_enemy_cards()` 使用选择器
+
+---
+
+## 18. 与旧系统集成
+
+### 18.1 切换路径
+
+| 旧系统 | 新系统 |
+|--------|--------|
+| `BattleFlowManager` | `BattleCore` + States |
+| `BattleRunner` | `BattleConfig` |
+| `BattleUI_v1` | `BattleUI_V2` |
+| 内置卡组 | `IDeckPolicy` |
+
+### 18.2 共存策略
+
+新系统与旧系统可共存，通过不同场景加载：
+- `BattleTest.tscn` → 新系统测试
+- 原有场景 → 旧系统继续运行

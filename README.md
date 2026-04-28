@@ -46,10 +46,28 @@ PlayerSelect → EnemyReveal → Settlement → RoundEnd
 ### 压力测试
 运行 `scenes/battle/BattleStressTest.tscn` 测试战斗系统 API
 
+### 测试结果 (2026-04-28)
+```
+Round 1: Player 20 vs 21 Enemy → Enemy Win (0-1)
+Round 2: Player 18 vs 21 Enemy → Enemy Win (0-2)
+Round 3: Player 22 vs 21 Enemy → Player Win (1-2)
+Round 4: Player 16 vs 21 Enemy → Enemy Win (1-3) → BATTLE END
+Result: Defeat (Enemy 3 wins)
+```
+
+### 已验证功能
+| 功能 | 状态 |
+|------|------|
+| 状态机流转 | ✅ |
+| 随机玩家/敌方选牌 | ✅ |
+| 3胜制结束 | ✅ |
+| Cost 系统联动 | ✅ |
+| 程序正常退出 | ✅ |
+
 ### 已修复问题
-- Stack overflow in transition_to()
-- 状态转换同步执行导致流程串行
-- SettlementState 胜负判断错误
+- Stack overflow in transition_to() - 使用 call_deferred()
+- 状态转换同步执行 - 使用 on_animation_complete()
+- SettlementState 胜负判断错误 - 自己比较分数
 
 ## 代码统计
 
