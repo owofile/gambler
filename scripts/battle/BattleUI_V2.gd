@@ -238,7 +238,7 @@ func play_destroy_animation(card_ids: Array, on_complete: Callable) -> void:
 
 	var pending: Dictionary = {"count": widgets_to_destroy.size()}
 	for widget in widgets_to_destroy:
-		widget.play_animation("shrink_destroy", func():
+		widget.play_animation("shader_shrink_destroy", func():
 			pending["count"] -= 1
 			if pending["count"] <= 0:
 				on_complete.call()

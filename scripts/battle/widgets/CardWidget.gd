@@ -119,6 +119,12 @@ func _get_animation_name_for(event_name: String) -> String:
 		"selected": return "move"
 		"reveal": return "shake"
 		"particle": return "particle"
+		"shrink_destroy": return "shrink_destroy"
+		"fade_destroy": return "fade_destroy"
+		"shake_destroy": return "shake_destroy"
+		"shader_shrink_destroy": return "shader_shrink_destroy"
+		"shader_fade_destroy": return "shader_fade_destroy"
+		"shader_shake_destroy": return "shader_shake_destroy"
 	return ""
 
 func _build_animation_config(event_name: String) -> Dictionary:
@@ -131,6 +137,12 @@ func _build_animation_config(event_name: String) -> Dictionary:
 			return {"to": position + Vector2(0, -50), "duration": 0.3}
 		"particle":
 			return {"particle_count": card_value if card_value > 0 else 10, "spawn_position": global_position, "color": Color.YELLOW}
+		"shrink_destroy":
+			return {"duration": 0.3}
+		"fade_destroy":
+			return {"duration": 0.4, "fade_delay": 0.0}
+		"shake_destroy":
+			return {"duration": 0.5, "shake_offset": Vector2(5, 5)}
 	return {}
 
 func set_enabled(enabled: bool) -> void:

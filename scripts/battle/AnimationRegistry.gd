@@ -19,9 +19,14 @@ func _init_presets() -> void:
 	_presets["particle"] = ParticleAnimation.new()
 	_presets["sequential"] = SequentialAnimation.new()
 	_presets["parallel"] = ParallelAnimation.new()
+
 	_presets["fade_destroy"] = FadeDestroyAnimation.new()
 	_presets["shrink_destroy"] = ShrinkDestroyAnimation.new()
 	_presets["shake_destroy"] = ShakeDestroyAnimation.new()
+
+	_presets["shader_shrink_destroy"] = ShaderShrinkDestroyAnimation.new()
+	_presets["shader_fade_destroy"] = ShaderFadeDestroyAnimation.new()
+	_presets["shader_shake_destroy"] = ShaderShakeDestroyAnimation.new()
 
 ## 获取动画实例
 func get_animation(name: String) -> Variant:
