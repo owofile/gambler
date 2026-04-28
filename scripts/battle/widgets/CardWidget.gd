@@ -50,6 +50,7 @@ func setup(proto_id: String, instance_id: String, value: int, name: String = "",
 	card_name = name
 	card_class = card_class_name
 	card_effects = effects
+	_update_display()
 	print("[CardWidget] Setup - id=%s, value=%d, name=%s" % [instance_id, value, name])
 
 func _get_animation_registry() -> Node:
