@@ -19,17 +19,14 @@ Godot 4.3 卡牌对战游戏
 - [docs/BATTLE_FLOW_DESIGN.md](docs/BATTLE_FLOW_DESIGN.md) - 战斗流程设计
 - [docs/BATTLE_SYSTEM_V2.md](docs/BATTLE_SYSTEM_V2.md) - 战斗系统 V2 架构文档
 
-## 核心功能
+## 代码统计
 
-| 模块 | 状态 | 说明 |
+| 语言 | 文件 | 行数 |
 |------|------|------|
-| 卡牌战斗 | ✅ | 完整战斗流程、选牌、比大小 |
-| 卡牌背包 | ✅ | CardMgr 管理，最多20张 |
-| 存档系统 | ✅ | SaveManager + WorldState |
-| 对话系统 | ✅ | NarrativeEngine + DialogueSystem |
-| 调试菜单 | ✅ | F1 打开，存档/读档/添加卡牌 |
-| 特效系统 | 🔨 | 设计文档完成，待实现 |
-| 物品背包 | 🔜 | 计划中 |
+| GDScript | 78+ | 6,257+ |
+| TSCN | 17+ | 2,264+ |
+| JSON | 5 | 394 |
+| **合计** | **100+** | **8,915+** |
 
 ## 版本
 
