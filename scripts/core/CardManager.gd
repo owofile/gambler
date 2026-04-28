@@ -74,6 +74,7 @@ func get_deck_snapshot(selected_instance_ids: Array) -> DeckSnapshot:
 					card_snapshot.add_effect_id(eff_id)
 				card_snapshot.set_cost_id(prototype.cost_id)
 				card_snapshot.set_bind_status(card.get_bind_status())
+				card_snapshot.set_destroy_animation(prototype.destroy_animation)
 				snapshot.add_card(card_snapshot)
 
 	return snapshot

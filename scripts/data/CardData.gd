@@ -24,6 +24,7 @@ var cost_id: String
 var is_lockable: bool
 var texture_path: String
 var display_name: String
+var destroy_animation: String = "fade_destroy"
 var animation_config: Dictionary = {
 	"hover": "glow",
 	"click": "bounce",
@@ -40,7 +41,8 @@ func _init(
 	p_cost: String = "",
 	p_lockable: bool = true,
 	p_texture_path: String = "",
-	p_display_name: String = ""
+	p_display_name: String = "",
+	p_destroy_animation: String = "fade_destroy"
 ) -> void:
 	prototype_id = p_id
 	card_class = p_class
@@ -50,6 +52,7 @@ func _init(
 	is_lockable = p_lockable
 	texture_path = p_texture_path
 	display_name = p_display_name
+	destroy_animation = p_destroy_animation
 
 static func class_name_to_string(class_type: CardClass) -> String:
 	match class_type:

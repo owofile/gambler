@@ -14,6 +14,7 @@ var _card_class: CardData.CardClass = CardData.CardClass.Artifact
 var _effect_ids: Array = []
 var _cost_id: String = ""
 var _bind_status: CardData.CardBindStatus = CardData.CardBindStatus.None
+var _destroy_animation: String = "fade_destroy"
 
 func _init() -> void:
 	_effect_ids = []
@@ -74,6 +75,12 @@ func set_bind_status(value: CardData.CardBindStatus) -> void:
 func has_cost() -> bool:
 	return not _cost_id.is_empty()
 
+func get_destroy_animation() -> String:
+	return _destroy_animation
+
+func set_destroy_animation(value: String) -> void:
+	_destroy_animation = value
+
 func has_effect(effect_id: String) -> bool:
 	return _effect_ids.has(effect_id)
 
@@ -92,4 +99,5 @@ func clone() -> CardSnapshot:
 		new_snapshot.add_effect_id(eff_id)
 	new_snapshot.set_cost_id(_cost_id)
 	new_snapshot.set_bind_status(_bind_status)
+	new_snapshot.set_destroy_animation(_destroy_animation)
 	return new_snapshot

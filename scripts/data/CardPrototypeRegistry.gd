@@ -51,7 +51,8 @@ func _parse_prototypes(data: Dictionary) -> void:
 			proto_dict.get("cost_id", ""),
 			proto_dict.get("is_lockable", true),
 			proto_dict.get("texture", ""),
-			proto_dict.get("display_name", "")
+			proto_dict.get("display_name", ""),
+			proto_dict.get("destroy_animation", "fade_destroy")
 		)
 		_prototypes[key] = proto
 
