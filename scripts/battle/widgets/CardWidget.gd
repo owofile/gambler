@@ -129,7 +129,9 @@ func _modulate_by_state() -> void:
 		_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _update_display() -> void:
+	print("[DEBUG] _update_display called - card_value=%d, _value_label=%s" % [card_value, _value_label])
 	if _value_label:
+		print("[DEBUG] Setting ValueLabel text to: %s" % (str(card_value) if card_value > 0 else "-"))
 		_value_label.text = str(card_value) if card_value > 0 else "-"
 	if _hover_name:
 		_hover_name.text = card_name if not card_name.is_empty() else prototype_id
