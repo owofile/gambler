@@ -4,7 +4,6 @@ extends BattleState
 
 var _selected_cards: Array = []
 var _required_count: int = 3
-var _exiting: bool = false
 
 func _init(core: BattleCore) -> void:
 	super._init(core)
@@ -19,11 +18,7 @@ func enter() -> void:
 	play_animation("show_hand")
 
 func exit() -> void:
-	if _exiting:
-		return
-	_exiting = true
-	_core.ui_enable_selection(false)
-	_exiting = false
+	pass
 
 func on_player_card_selected(card_id: String) -> void:
 	if _selected_cards.size() < _required_count:
