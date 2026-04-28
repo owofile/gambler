@@ -10,19 +10,32 @@ script = ExtResource("1_card_widget")
 [node name="CardContainer" type="Node2D" parent="."]
 
 [node name="Sprite" type="Sprite2D" parent="CardContainer"]
-position = Vector2(50, 60)
-scale = Vector2(0.15, 0.22)
+position = Vector2(50, 55)
+scale = Vector2(0.15, 0.20)
 texture = ExtResource("2_card_texture")
 
 [node name="ValueLabel" type="Label" parent="."]
-layout_mode = 2
+offset_left = 35.0
+offset_top = 90.0
+offset_right = 65.0
+offset_bottom = 115.0
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HoverInfo" type="PanelContainer" parent="."]
 visible = false
-layout_mode = 2
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 10.0
+offset_right = 150.0
+offset_bottom = 130.0
+grow_horizontal = 1
+grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="HoverInfo"]
 layout_mode = 2

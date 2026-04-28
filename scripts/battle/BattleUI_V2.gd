@@ -28,11 +28,13 @@ var _enemy_cards_label: Label = null
 
 @export var card_spacing: int = 120
 @export var card_start_x: int = 100
-@export var card_start_y: int = 300
+@export var card_start_y: int = 350
 
 @export var enemy_card_spacing: int = 120
 @export var enemy_card_start_x: int = 100
-@export var enemy_card_start_y: int = 100
+@export var enemy_card_start_y: int = 80
+
+var _screen_size: Vector2 = Vector2(800, 600)
 
 func _ready() -> void:
 	_card_manager = get_node_or_null("/root/CardMgr")
@@ -47,6 +49,8 @@ func initialize(core: BattleCore) -> void:
 		_core.animation_requested.connect(_on_animation_requested)
 
 func _setup_ui_elements() -> void:
+	_screen_size = get_viewport_rect().size
+
 	var panel = ColorRect.new()
 	panel.color = Color(0.1, 0.1, 0.2, 0.9)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -55,27 +59,27 @@ func _setup_ui_elements() -> void:
 	_state_label = Label.new()
 	_state_label.text = "Battle"
 	_state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_state_label.position = Vector2(300, 20)
+	_state_label.position = Vector2((_screen_size.x - 200) / 2, 20)
 	_state_label.size = Vector2(200, 40)
 	add_child(_state_label)
 
 	_score_label = Label.new()
 	_score_label.text = "Player: 0 | Enemy: 0"
 	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_score_label.position = Vector2(300, 70)
+	_score_label.position = Vector2((_screen_size.x - 200) / 2, 70)
 	_score_label.size = Vector2(200, 30)
 	add_child(_score_label)
 
 	_instruction_label = Label.new()
 	_instruction_label.text = "Select %d cards" % MAX_SELECT
 	_instruction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_instruction_label.position = Vector2(250, 150)
+	_instruction_label.position = Vector2((_screen_size.x - 300) / 2, 150)
 	_instruction_label.size = Vector2(300, 30)
 	add_child(_instruction_label)
 
 	_playcard_btn = Button.new()
 	_playcard_btn.text = "出牌"
-	_playcard_btn.position = Vector2(350, 450)
+	_playcard_btn.position = Vector2((_screen_size.x - 100) / 2, 480)
 	_playcard_btn.size = Vector2(100, 50)
 	_playcard_btn.disabled = true
 	_playcard_btn.pressed.connect(_on_playcard_pressed)
@@ -84,7 +88,7 @@ func _setup_ui_elements() -> void:
 	_enemy_cards_label = Label.new()
 	_enemy_cards_label.text = "Enemy: "
 	_enemy_cards_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_enemy_cards_label.position = Vector2(250, 200)
+	_enemy_cards_label.position = Vector2((_screen_size.x - 300) / 2, 200)
 	_enemy_cards_label.size = Vector2(300, 30)
 	add_child(_enemy_cards_label)
 
@@ -118,16 +122,17 @@ func _create_card_widgets() -> void:
 		push_error("[BattleUI_V2] CardWidget.tscn not found!")
 		return
 
-	for i in range(_all_cards.size()):
-		if i >= 6:
-			break
+	var card_count = mini(_all_cards.size(), 6)
+	var total_width = (card_count - 1) * card_spacing
+	var start_x = (_screen_size.x - total_width) / 2
 
+	for i in range(card_count):
 		var card: CardInstance = _all_cards[i] as CardInstance
 		if not card:
 			continue
 
 		var widget = scene.instantiate()
-		widget.position = Vector2(card_start_x + i * card_spacing, card_start_y)
+		widget.position = Vector2(start_x + i * card_spacing, card_start_y)
 
 		var card_info = _get_card_full_info(card)
 		widget.setup(
