@@ -4,8 +4,10 @@ extends Resource
 const REGISTRY_PATH := "res://resources/card_prototypes.json"
 
 var _prototypes: Dictionary = {}
+var _category_registry: CategoryRegistry
 
 func _init() -> void:
+	_category_registry = CategoryRegistry.new()
 	_load_registry()
 
 func _get_prototype(p_id: String) -> CardData:
@@ -18,6 +20,9 @@ func get_prototype(p_id: String) -> CardData:
 
 func has_prototype(p_id: String) -> bool:
 	return _prototypes.has(p_id)
+
+func get_category_registry() -> CategoryRegistry:
+	return _category_registry
 
 func _load_registry() -> void:
 	if FileAccess.file_exists(REGISTRY_PATH):
@@ -38,6 +43,7 @@ func _parse_prototypes(data: Dictionary) -> void:
 	for key in data.keys():
 		var proto_dict: Dictionary = data[key]
 		var card_class: CardData.CardClass = CardData.string_to_class_name(proto_dict.get("card_class", "Artifact"))
+		var category_id: String = proto_dict.get("card_class", "Artifact")
 		var effects: Variant = proto_dict.get("effect_ids", [])
 		var effects_str: Array = []
 		if effects is Array:
@@ -54,6 +60,7 @@ func _parse_prototypes(data: Dictionary) -> void:
 			proto_dict.get("display_name", ""),
 			proto_dict.get("destroy_animation", "fade_destroy")
 		)
+		proto.set_category_id(category_id)
 		_prototypes[key] = proto
 
 func _setup_default_prototypes() -> void:
@@ -91,3 +98,16 @@ func get_prototypes_by_class(card_class: CardData.CardClass) -> Array:
 		if proto.card_class == card_class:
 			result.append(proto)
 	return result
+
+func get_prototypes_by_category(category_id: String) -> Array:
+	var result: Array = []
+	for proto in _prototypes.values():
+		if proto.get_category_id() == category_id:
+			result.append(proto)
+	return result
+
+func get_category_display_name(category_id: String) -> String:
+	return _category_registry.get_display_name(category_id)
+
+func get_category_color(category_id: String) -> String:
+	return _category_registry.get_color(category_id)

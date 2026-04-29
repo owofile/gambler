@@ -18,6 +18,7 @@ enum CardBindStatus {
 
 var prototype_id: String
 var card_class: CardClass
+var category_id: String
 var base_value: int
 var effect_ids: Array = []
 var cost_id: String
@@ -46,6 +47,7 @@ func _init(
 ) -> void:
 	prototype_id = p_id
 	card_class = p_class
+	category_id = class_name_to_string(p_class)
 	base_value = p_value
 	effect_ids = p_effects.duplicate()
 	cost_id = p_cost
@@ -73,3 +75,15 @@ static func string_to_class_name(s: String) -> CardClass:
 		"Sin": return CardClass.Sin
 		"Authority": return CardClass.Authority
 	return CardClass.Artifact
+
+func set_category_id(new_category_id: String) -> void:
+	category_id = new_category_id
+
+func get_category_id() -> String:
+	return category_id
+
+func get_category_display_name() -> String:
+	return category_id
+
+static func class_name_for_category_id(category_id: String) -> CardClass:
+	return string_to_class_name(category_id)

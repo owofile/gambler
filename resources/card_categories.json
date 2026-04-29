@@ -1,0 +1,58 @@
+{
+	"Artifact": {
+		"display_name": "器物",
+		"description": "武器、护具、工具等装备类卡牌",
+		"icon": "res://assets/icons/artifact.png",
+		"base_value_range": [5, 9],
+		"special_effect": null,
+		"color": "#8B4513"
+	},
+	"Bond": {
+		"display_name": "羁绊",
+		"description": "人际关系、情感纽带类卡牌",
+		"icon": "res://assets/icons/bond.png",
+		"base_value_range": [2, 4],
+		"special_effect": null,
+		"color": "#9370DB"
+	},
+	"Creature": {
+		"display_name": "生灵",
+		"description": "生物、怪物、灵体类卡牌",
+		"icon": "res://assets/icons/creature.png",
+		"base_value_range": [3, 6],
+		"special_effect": null,
+		"color": "#228B22"
+	},
+	"Concept": {
+		"display_name": "概念",
+		"description": "抽象概念、情感、理念类卡牌",
+		"icon": "res://assets/icons/concept.png",
+		"base_value_range": [2, 7],
+		"special_effect": null,
+		"color": "#4169E1"
+	},
+	"Sin": {
+		"display_name": "罪孽",
+		"description": "负面、危险、高风险类卡牌",
+		"icon": "res://assets/icons/sin.png",
+		"base_value_range": [6, 10],
+		"special_effect": "high_risk",
+		"color": "#8B0000"
+	},
+	"Authority": {
+		"display_name": "权能",
+		"description": "权力、命令、审判类卡牌",
+		"icon": "res://assets/icons/authority.png",
+		"base_value_range": [4, 8],
+		"special_effect": null,
+		"color": "#FFD700"
+	},
+	"Bird": {
+		"display_name": "鸟类",
+		"description": "飞行生物、天际之灵",
+		"icon": "res://assets/icons/bird.png",
+		"base_value_range": [3, 7],
+		"special_effect": null,
+		"color": "#87CEEB"
+	}
+}
