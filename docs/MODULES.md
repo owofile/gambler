@@ -4,16 +4,17 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
-| 2026-04-29 | v0.9.2 | 新增CardMgr.has_card()、NarrativeEngine HasCard条件，支持NPC对话检查卡牌 |
-| 2026-04-29 | v0.9.1 | 新增物品背包系统(InvMgr)、销毁动画优化、Shader着色器动画、战斗结算修复 |
+| 2026-04-29 | v0.9.3 | 新增BodyManager、HeartbeatManager心跳系统框架 |
+| 2026-04-29 | v0.9.2 | 新增CardMgr.has_card()、HasCard对话条件 |
+| 2026-04-29 | v0.9.1 | 新增物品背包系统(InvMgr)、Shader销毁动画 |
 | 2026-04-28 | v0.9.0 | 战斗系统V2完成、压力测试通过 |
-| 2026-04-28 | v0.8.1 | InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复 |
-| 2026-04-28 | v0.8.0 | 新增调试菜单(DebugMenu)、卡牌背包系统、存档系统重构 |
-| 2026-04-27 | v0.7.0 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划） |
-| 2026-04-27 | v3.4 | 运行时错误修复：着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单音量加载 |
-| 2026-04-27 | v3.3 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
-| 2026-04-27 | v3.2 | 新增MapManager、QuestManager、示例配置JSON |
-| 2026-04-27 | v3.1 | 新增事件总线增强（幂等+确认机制）、WorldState、SaveManager、NarrativeEngine |
+| 2026-04-28 | v0.8.1 | InputManager全局输入、调试菜单重构(OOP) |
+| 2026-04-28 | v0.8.0 | 新增调试菜单、卡牌背包系统、存档系统重构 |
+| 2026-04-27 | v0.7.0 | 新增 EFFECTS_SYSTEM.md 设计文档 |
+| 2026-04-27 | v3.4 | 运行时错误修复 |
+| 2026-04-27 | v0.3.3 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
+| 2026-04-27 | v0.3.2 | 新增MapManager、QuestManager |
+| 2026-04-27 | v0.3.1 | 新增事件总线增强、WorldState、SaveManager、NarrativeEngine |
 
 ---
 
@@ -184,6 +185,52 @@ QuestManager.start_quest(quest_id) -> bool
 QuestManager.get_quest_info(quest_id) -> Dictionary
 QuestManager.get_active_quests() -> Array
 # 自动监听BattleEnded, CardAcquired, WorldFlagChanged等事件更新进度
+```
+
+### BodyManager (身体管理器)
+```gdscript
+# 配置器官（需在游戏开始前调用）
+BodyManager.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
+
+# 检查/移除器官
+BodyManager.has_part(BodyPart.MOUTH) -> bool
+BodyManager.remove_part(BodyPart.EYES) -> bool
+
+# 获取状态
+BodyManager.get_parts() -> Array[BodyPart]
+BodyManager.get_parts_count() -> int
+BodyManager.is_all_parts_lost() -> bool
+
+# 存档
+BodyManager.get_save_data() -> Dictionary
+BodyManager.load_save_data(data)
+```
+
+### HeartbeatManager (心跳管理器)
+```gdscript
+# 配置心跳间隔（秒）
+HeartbeatManager.configure(60.0)
+
+# 控制计时器
+HeartbeatManager.start()
+HeartbeatManager.pause()
+HeartbeatManager.toggle()
+
+# 手动触发（调试用）
+HeartbeatManager.trigger()
+
+# 查询状态
+HeartbeatManager.is_running() -> bool
+HeartbeatManager.get_interval() -> float
+HeartbeatManager.get_state() -> Dictionary
+
+# 信号
+# heartbeat_triggered -> 当心跳触发时
+# heartbeat_state_changed(is_running) -> 状态变化时
+
+# 存档
+HeartbeatManager.get_save_data() -> Dictionary
+HeartbeatManager.load_save_data(data)
 ```
 
 ---

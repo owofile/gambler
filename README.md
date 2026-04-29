@@ -42,13 +42,13 @@ Godot 4.3 卡牌对战游戏
 
 | 版本 | 描述 |
 |------|------|
-| **v0.9.2** | 新增CardMgr.has_card()、NarrativeEngine HasCard条件，支持NPC对话检查卡牌 |
-| **v0.9.1** | 新增物品背包系统(InvMgr)、Shader销毁动画、调试菜单物品测试 |
+| **v0.9.3** | 新增BodyManager、HeartbeatManager心跳系统框架 |
+| **v0.9.2** | 新增CardMgr.has_card()、HasCard对话条件 |
+| **v0.9.1** | 新增物品背包系统(InvMgr)、Shader销毁动画 |
 | **v0.9.0** | Battle System V2 状态机架构完成、压力测试通过 |
-| **v0.8.1** | InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复 |
-| **v0.8.0** | 新增调试菜单、卡牌背包系统、存档系统重构 |
-| v0.7.0 | 新增卡牌特效系统设计文档（EFFECTS_SYSTEM.md） |
-| v0.6.1 | 运行时错误修复 |
+| v0.8.1 | InputManager全局输入、调试菜单重构(OOP) |
+| v0.8.0 | 新增调试菜单、卡牌背包系统、存档系统重构 |
+| v0.7.0 | 新增EFFECTS_SYSTEM.md设计文档 |
 | v0.6.0 | 对话UI系统重构(DialogueSystem/DialogueUI)，MVC模式 |
 | v0.5.0 | 整合thryzhn横板探索系统 |
 | v0.4.0 | BattleUI_v1 Node2D 架构，卡片动画与交互系统 |
