@@ -562,9 +562,85 @@ SaveManager.get_last_save_info()   # 获取存档信息
   "world_state": { "flag1": true, "flag2": 3 },
   "card_instances": [
     {"prototype_id": "card_sword", "delta_value": 0, "bind_status": 0}
-  ]
+  ],
+  "inventory": {
+    "version": 1,
+    "items": [
+      {"instance_id": "xxx", "prototype_id": "item_potion_health", "quantity": 3, "metadata": {}}
+    ]
+  }
 }
 ```
+
+### 11.6 物品背包系统
+
+**文件**: `scripts/core/ItemManager.gd` (Autoload)
+
+**接口**:
+```gdscript
+ItemManager.add_item(prototype_id, quantity=1)  # 添加物品（自动堆叠）
+ItemManager.remove_item(instance_id, quantity=1) # 移除物品（减少数量）
+ItemManager.remove_item_by_prototype(prototype_id, quantity=1) # 按原型移除
+ItemManager.has_item(prototype_id)              # 检查是否有该物品
+ItemManager.get_item_count(prototype_id)        # 获取物品数量
+ItemManager.get_item(instance_id)               # 获取物品实例
+ItemManager.get_all_items()                     # 获取所有物品
+ItemManager.get_inventory_size()                # 背包格数
+ItemManager.is_full()                           # 背包是否已满
+ItemManager.clear_all_items()                   # 清空背包
+ItemManager.MAX_SIZE                            # 最大容量 = 99
+```
+
+**数据类**:
+
+```gdscript
+ItemInstance (RefCounted)
+├── get_instance_id() / set_instance_id()
+├── get_prototype_id() / set_prototype_id()
+├── get_quantity() / set_quantity()
+├── add_quantity(amount) / remove_quantity(amount)
+├── get_metadata(key) / set_metadata(key, value)
+└── to_dict() / from_dict()  # 存档序列化
+
+ItemData (RefCounted - 原型定义)
+├── prototype_id, display_name, description
+├── item_type: ItemType.Type (None, Consumable, Equipment, QuestItem, Material, KeyItem)
+├── max_stack: int (默认99)
+├── icon_path, is_droppable, is_discardable
+├── is_consumable() / is_equipment() / is_quest_item()
+├── can_stack()
+└── to_dict() / from_dict()
+
+ItemType (RefCounted - 枚举)
+├── Type.None = 0
+├── Type.Consumable = 1    # 消耗品
+├── Type.Equipment = 2     # 装备
+├── Type.QuestItem = 3     # 任务物品
+├── Type.Material = 4      # 材料
+├── Type.KeyItem = 5       # 关键物品
+├── to_string() / from_string()
+```
+
+**原型注册表**: `scripts/data/ItemPrototypeRegistry.gd`
+```gdscript
+ItemManager.item_registry  # ItemPrototypeRegistry 实例
+├── register_item(ItemData)
+├── get_prototype(prototype_id) -> ItemData
+├── has_prototype(prototype_id) -> bool
+├── unregister_item(prototype_id)
+├── get_all_prototypes() -> Array
+└── get_count() -> int
+```
+
+**示例物品原型** (`resources/item_prototypes.json`):
+| 原型ID | 名称 | 类型 | 可堆叠 |
+|--------|------|------|--------|
+| item_potion_health | 生命药水 | Consumable | 10 |
+| item_potion_mana | 魔法药水 | Consumable | 10 |
+| item_sword_basic | 新手剑 | Equipment | 1 |
+| item_key_dungeon | 地牢钥匙 | KeyItem | 1 |
+| item_iron_ore | 铁矿 | Material | 99 |
+| item_quest_scroll | 古老卷轴 | QuestItem | 1 |
 
 ---
 
@@ -572,9 +648,11 @@ SaveManager.get_last_save_info()   # 获取存档信息
 
 - [x] InputManager - 全局输入管理器，F1键触发调试菜单
 - [x] 调试菜单 (DebugMenu) - 存档、读档、添加卡牌、背包显示
+- [x] 物品背包系统 (ItemManager) - 消耗品、装备、任务物品管理
 - [ ] 继续游戏按钮 - 主菜单增加"继续"选项检测存档
 - [ ] 自动存档触发器 - 区域切换时自动存档
 - [ ] ChapterManager - 章节/进度系统
 - [ ] NPC系统 - NPC状态、位置、交互
 - [ ] 商店系统 - 基于对话树的商品购买
 - [ ] UI响应式布局 - 适配不同分辨率
+- [ ] 背包UI - 物品背包界面显示和交互
