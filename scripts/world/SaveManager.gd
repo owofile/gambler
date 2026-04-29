@@ -116,13 +116,18 @@ func _collect_save_data() -> Dictionary:
 	if WorldState:
 		world_data = WorldState.get_save_data()
 
+	var inventory_data: Dictionary = {}
+	if ItemManager:
+		inventory_data = ItemManager.get_save_data()
+
 	return {
 		"version": SAVE_VERSION,
 		"timestamp": timestamp,
 		"current_zone": _get_current_zone_path(),
 		"player_position": _get_player_position(),
 		"world_state": world_data.get("world_state", {}),
-		"card_instances": card_data
+		"card_instances": card_data,
+		"inventory": inventory_data
 	}
 
 func _apply_save_data(data: Dictionary) -> void:
@@ -137,6 +142,9 @@ func _apply_save_data(data: Dictionary) -> void:
 				instance.set_delta_value(card_data.get("delta_value", 0))
 			if instance and card_data.has("bind_status"):
 				instance.set_bind_status(card_data.get("bind_status", 0))
+
+	if data.has("inventory") and ItemManager:
+		ItemManager.load_save_data(data["inventory"])
 
 	if data.has("current_zone"):
 		_pending_zone = data["current_zone"]

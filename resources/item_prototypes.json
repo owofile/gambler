@@ -1,0 +1,62 @@
+{
+    "item_potion_health": {
+        "prototype_id": "item_potion_health",
+        "display_name": "生命药水",
+        "description": "恢复30点生命值",
+        "item_type": "Consumable",
+        "max_stack": 10,
+        "icon_path": "res://assets/items/potion_health.png",
+        "is_droppable": true,
+        "is_discardable": true
+    },
+    "item_potion_mana": {
+        "prototype_id": "item_potion_mana",
+        "display_name": "魔法药水",
+        "description": "恢复20点魔法值",
+        "item_type": "Consumable",
+        "max_stack": 10,
+        "icon_path": "res://assets/items/potion_mana.png",
+        "is_droppable": true,
+        "is_discardable": true
+    },
+    "item_sword_basic": {
+        "prototype_id": "item_sword_basic",
+        "display_name": "新手剑",
+        "description": "一把普通的剑，攻击力+5",
+        "item_type": "Equipment",
+        "max_stack": 1,
+        "icon_path": "res://assets/items/sword_basic.png",
+        "is_droppable": false,
+        "is_discardable": false
+    },
+    "item_key_dungeon": {
+        "prototype_id": "item_key_dungeon",
+        "display_name": "地牢钥匙",
+        "description": "打开地牢大门的钥匙",
+        "item_type": "KeyItem",
+        "max_stack": 1,
+        "icon_path": "res://assets/items/key_dungeon.png",
+        "is_droppable": false,
+        "is_discardable": false
+    },
+    "item_iron_ore": {
+        "prototype_id": "item_iron_ore",
+        "display_name": "铁矿",
+        "description": "用于锻造的铁矿石",
+        "item_type": "Material",
+        "max_stack": 99,
+        "icon_path": "res://assets/items/iron_ore.png",
+        "is_droppable": true,
+        "is_discardable": true
+    },
+    "item_quest_scroll": {
+        "prototype_id": "item_quest_scroll",
+        "display_name": "古老卷轴",
+        "description": "记载着古老秘密的卷轴",
+        "item_type": "QuestItem",
+        "max_stack": 1,
+        "icon_path": "res://assets/items/quest_scroll.png",
+        "is_droppable": false,
+        "is_discardable": false
+    }
+}
