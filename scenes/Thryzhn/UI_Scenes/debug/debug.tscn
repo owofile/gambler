@@ -35,7 +35,12 @@ horizontal_alignment = 1
 
 [node name="CardInfo" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-text = "卡牌数量: 0"
+text = "卡牌: 0 / 20"
+horizontal_alignment = 1
+
+[node name="ItemInfo" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "物品: 0 / 99"
 horizontal_alignment = 1
 
 [node name="Separator2" type="Label" parent="Panel/VBox"]
@@ -67,15 +72,25 @@ horizontal_alignment = 1
 
 [node name="Option3" type="Label" parent="Panel/VBox/Options"]
 layout_mode = 2
-text = "  显示背包"
+text = "  显示卡牌背包"
 horizontal_alignment = 1
 
 [node name="Option4" type="Label" parent="Panel/VBox/Options"]
 layout_mode = 2
-text = "  消耗策略: NoConsumption"
+text = "  添加随机物品"
 horizontal_alignment = 1
 
 [node name="Option5" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  显示物品背包"
+horizontal_alignment = 1
+
+[node name="Option6" type="Label" parent="Panel/VBox/Options"]
+layout_mode = 2
+text = "  消耗策略: NoConsumption"
+horizontal_alignment = 1
+
+[node name="Option7" type="Label" parent="Panel/VBox/Options"]
 layout_mode = 2
 text = "  返回"
 horizontal_alignment = 1
