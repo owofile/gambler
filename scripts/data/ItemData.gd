@@ -45,7 +45,7 @@ func to_dict() -> Dictionary:
 		"prototype_id": prototype_id,
 		"display_name": display_name,
 		"description": description,
-		"item_type": ItemType.to_string(item_type),
+		"item_type": ItemType.type_to_string(item_type),
 		"max_stack": max_stack,
 		"icon_path": icon_path,
 		"is_droppable": is_droppable,
@@ -57,7 +57,7 @@ static func from_dict(data: Dictionary) -> ItemData:
 		data.get("prototype_id", ""),
 		data.get("display_name", ""),
 		data.get("description", ""),
-		ItemType.from_string(data.get("item_type", "None"))
+		ItemType.string_to_type(data.get("item_type", "None"))
 	)
 	item.max_stack = data.get("max_stack", 99)
 	item.icon_path = data.get("icon_path", "")

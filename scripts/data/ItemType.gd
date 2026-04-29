@@ -11,7 +11,7 @@ enum Type {
 	KeyItem = 5        # 关键物品（唯一，不可丢弃）
 }
 
-static func to_string(type: Type) -> String:
+static func type_to_string(type: Type) -> String:
 	match type:
 		Type.Consumable:
 			return "Consumable"
@@ -25,7 +25,7 @@ static func to_string(type: Type) -> String:
 			return "KeyItem"
 	return "None"
 
-static func from_string(s: String) -> Type:
+static func string_to_type(s: String) -> Type:
 	match s:
 		"Consumable":
 			return Type.Consumable

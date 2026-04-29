@@ -4,7 +4,7 @@
 ## - Add/remove items from inventory
 ## - Query inventory state
 ## - Provide save/load integration
-class_name ItemManager
+class_name InventorySystem
 extends Node
 
 const MAX_SIZE: int = 99
@@ -17,7 +17,7 @@ func _ready() -> void:
 
 func add_item(prototype_id: String, quantity: int = 1) -> ItemInstance:
 	if _items.size() >= MAX_SIZE:
-		push_warning("ItemManager: AddItem failed - inventory is full (max %d)" % MAX_SIZE)
+		push_warning("InventorySystem: AddItem failed - inventory is full (max %d)" % MAX_SIZE)
 		return null
 
 	var existing = _find_by_prototype(prototype_id)
@@ -27,42 +27,42 @@ func add_item(prototype_id: String, quantity: int = 1) -> ItemInstance:
 		var can_add = mini(quantity, max_stack - existing.get_quantity())
 		if can_add > 0:
 			existing.add_quantity(can_add)
-			print("[ItemManager] Added %d to existing stack: %s (now %d)" % [can_add, prototype_id, existing.get_quantity()])
+			print("[InventorySystem] Added %d to existing stack: %s (now %d)" % [can_add, prototype_id, existing.get_quantity()])
 			return existing
 		else:
-			push_warning("ItemManager: AddItem failed - stack is full for %s" % prototype_id)
+			push_warning("InventorySystem: AddItem failed - stack is full for %s" % prototype_id)
 			return null
 
 	var instance = _create_item_instance(prototype_id, quantity)
 	_items.append(instance)
-	print("[ItemManager] Added new item: %s (qty: %d)" % [prototype_id, quantity])
+	print("[InventorySystem] Added new item: %s (qty: %d)" % [prototype_id, quantity])
 	return instance
 
 func remove_item(instance_id: String, quantity: int = 1) -> bool:
 	for i in range(_items.size()):
-		if _items[i].get_instance_id() == instance_id:
+		if _items[i].get_id() == instance_id:
 			if quantity <= 0:
 				_items.remove_at(i)
-				print("[ItemManager] Removed item: %s" % instance_id)
+				print("[InventorySystem] Removed item: %s" % instance_id)
 				return true
 			var success = _items[i].remove_quantity(quantity)
 			if success:
 				if _items[i].get_quantity() <= 0:
 					_items.remove_at(i)
-					print("[ItemManager] Removed item (all): %s" % instance_id)
+					print("[InventorySystem] Removed item (all): %s" % instance_id)
 				else:
-					print("[ItemManager] Reduced item: %s (now %d)" % [instance_id, _items[i].get_quantity()])
+					print("[InventorySystem] Reduced item: %s (now %d)" % [instance_id, _items[i].get_quantity()])
 				return true
 			return false
-	push_warning("ItemManager: RemoveItem failed - instance %s not found" % instance_id)
+	push_warning("InventorySystem: RemoveItem failed - instance %s not found" % instance_id)
 	return false
 
 func remove_item_by_prototype(prototype_id: String, quantity: int = 1) -> bool:
 	var instance = _find_by_prototype(prototype_id)
 	if not instance:
-		push_warning("ItemManager: RemoveItemByPrototype failed - no item with prototype %s" % prototype_id)
+		push_warning("InventorySystem: RemoveItemByPrototype failed - no item with prototype %s" % prototype_id)
 		return false
-	return remove_item(instance.get_instance_id(), quantity)
+	return remove_item(instance.get_id(), quantity)
 
 func has_item(prototype_id: String) -> bool:
 	return _find_by_prototype(prototype_id) != null
@@ -73,7 +73,7 @@ func get_item_count(prototype_id: String) -> int:
 
 func get_item(instance_id: String) -> ItemInstance:
 	for item in _items:
-		if item.get_instance_id() == instance_id:
+		if item.get_id() == instance_id:
 			return item
 	return null
 
@@ -88,7 +88,7 @@ func is_full() -> bool:
 
 func clear_all_items() -> void:
 	_items.clear()
-	print("[ItemManager] Inventory cleared")
+	print("[InventorySystem] Inventory cleared")
 
 func _find_by_prototype(prototype_id: String) -> ItemInstance:
 	for item in _items:
@@ -123,14 +123,14 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary) -> void:
 	_items.clear()
 	if not data.has("items"):
-		print("[ItemManager] No items to load")
+		print("[InventorySystem] No items to load")
 		return
 
 	for item_data in data["items"]:
 		var item = ItemInstance.from_dict(item_data)
 		_items.append(item)
 
-	print("[ItemManager] Loaded %d items" % _items.size())
+	print("[InventorySystem] Loaded %d items" % _items.size())
 
 func _get_item_prototype_data(prototype_id: String) -> Dictionary:
 	var prototype = _get_prototype(prototype_id)

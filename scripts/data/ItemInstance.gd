@@ -20,10 +20,10 @@ func _init(
 	_prototype_id = p_prototype_id
 	_quantity = maxi(1, p_quantity)
 
-func get_instance_id() -> String:
+func get_id() -> String:
 	return _instance_id
 
-func set_instance_id(value: String) -> void:
+func set_id(value: String) -> void:
 	if value.is_empty():
 		push_error("ItemInstance: Instance ID cannot be empty")
 		return

@@ -117,8 +117,8 @@ func _collect_save_data() -> Dictionary:
 		world_data = WorldState.get_save_data()
 
 	var inventory_data: Dictionary = {}
-	if ItemManager:
-		inventory_data = ItemManager.get_save_data()
+	if InventorySystem:
+		inventory_data = InventorySystem.get_save_data()
 
 	return {
 		"version": SAVE_VERSION,
@@ -143,8 +143,8 @@ func _apply_save_data(data: Dictionary) -> void:
 			if instance and card_data.has("bind_status"):
 				instance.set_bind_status(card_data.get("bind_status", 0))
 
-	if data.has("inventory") and ItemManager:
-		ItemManager.load_save_data(data["inventory"])
+	if data.has("inventory") and InventorySystem:
+		InventorySystem.load_save_data(data["inventory"])
 
 	if data.has("current_zone"):
 		_pending_zone = data["current_zone"]
