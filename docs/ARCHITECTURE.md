@@ -795,6 +795,18 @@ SaveManager.list_saves()
 
 对话树从JSON加载，支持条件-效应规则：
 
+**条件类型说明**:
+
+| 条件类型 | 参数 | 说明 |
+|---------|------|------|
+| HasFlag | flag, value(可选) | 检查 WorldState 标志 |
+| HasItem | prototype_id | 检查卡牌背包是否有指定卡牌 |
+| HasCard | prototype_id | 检查卡牌是否在背包中（卡未被销毁） |
+| DeckSizeGE | min | 检查卡组数量 |
+| NpcAlive | npc_id | 检查 NPC 是否存活 |
+| Comparison | flag, op, value | 比较标志值 |
+
+**示例**:
 ```json
 {
   "nodes": {
@@ -806,6 +818,11 @@ SaveManager.list_saves()
           "text": "Yes",
           "conditions": [{ "type": "HasFlag", "params": { "flag": "met_npc" } }],
           "effects": [{ "type": "SetFlag", "params": { "flag": "talked", "value": true } }]
+        },
+        {
+          "text": "Steal from merchant!",
+          "conditions": [{ "type": "HasCard", "params": { "prototype_id": "card_hand" } }],
+          "effects": [{ "type": "SetFlag", "params": { "flag": "stole_from_merchant", "value": true } }]
         }
       ]
     }

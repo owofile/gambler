@@ -42,6 +42,7 @@ Godot 4.3 卡牌对战游戏
 
 | 版本 | 描述 |
 |------|------|
+| **v0.9.2** | 新增CardMgr.has_card()、NarrativeEngine HasCard条件，支持NPC对话检查卡牌 |
 | **v0.9.1** | 新增物品背包系统(InvMgr)、Shader销毁动画、调试菜单物品测试 |
 | **v0.9.0** | Battle System V2 状态机架构完成、压力测试通过 |
 | **v0.8.1** | InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复 |

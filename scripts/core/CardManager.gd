@@ -87,6 +87,14 @@ func get_all_cards() -> Array:
 func get_deck_size() -> int:
 	return _player_deck.size()
 
+## Checks if player has any card with the given prototype_id in deck.
+## Returns true if at least one card with this prototype exists.
+func has_card(prototype_id: String) -> bool:
+	for card in _player_deck:
+		if card.get_prototype_id() == prototype_id:
+			return true
+	return false
+
 ## Checks if a card instance is locked.
 func is_card_locked(instance_id: String) -> bool:
 	for card in _player_deck:

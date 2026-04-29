@@ -160,6 +160,10 @@ func _evaluate_conditions(conditions: Array) -> bool:
 				var npc_id: String = params.get("npc_id", "")
 				if WorldState.has_flag("npc_dead_" + npc_id):
 					return false
+			"HasCard":
+				var prototype_id: String = params.get("prototype_id", "")
+				if not CardMgr.has_card(prototype_id):
+					return false
 			"Comparison":
 				var flag: String = params.get("flag", "")
 				var op: String = params.get("op", "==")

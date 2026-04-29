@@ -4,9 +4,10 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-29 | v0.9.2 | 新增CardMgr.has_card()、NarrativeEngine HasCard条件，支持NPC对话检查卡牌 |
 | 2026-04-29 | v0.9.1 | 新增物品背包系统(InvMgr)、销毁动画优化、Shader着色器动画、战斗结算修复 |
 | 2026-04-28 | v0.9.0 | 战斗系统V2完成、压力测试通过 |
-| 2026-04-28 | v0.8.1 | InputManager全局输入、调试菜单重构(OOP)、SaveManager修复OOP封装 |
+| 2026-04-28 | v0.8.1 | InputManager全局输入、调试菜单重构(OOP)、SaveManager封装修复 |
 | 2026-04-28 | v0.8.0 | 新增调试菜单(DebugMenu)、卡牌背包系统、存档系统重构 |
 | 2026-04-27 | v0.7.0 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划） |
 | 2026-04-27 | v3.4 | 运行时错误修复：着色器丢失、SceneManager静态调用、CardSelector缺失变量、主菜单音量加载 |
@@ -99,6 +100,7 @@ BattleFlowManager.confirm_selection()
 ```gdscript
 CardMgr.add_card(prototype_id) -> CardInstance
 CardMgr.remove_card(instance_id) -> bool
+CardMgr.has_card(prototype_id) -> bool  # 检查背包是否有特定原型卡牌
 CardMgr.get_all_cards() -> Array
 CardMgr.get_deck_snapshot(ids) -> DeckSnapshot
 CardMgr.clear_all_cards()  # 存档用
@@ -137,7 +139,7 @@ DialogueSystem.advance()
 DialogueSystem.select_option(index)
 ```
 
-**条件类型**: HasFlag, HasItem, DeckSizeGE, NpcAlive, Comparison
+**条件类型**: HasFlag, HasItem, HasCard, DeckSizeGE, NpcAlive, Comparison
 
 **效应类型**: SetFlag, GiveItem, RemoveItem, StartBattle, TriggerDialogue, KillNpc, GiveGold, TakeGold
 
