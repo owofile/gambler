@@ -10,7 +10,7 @@
 ##   Heartbeat.start()
 ##   Heartbeat.pause()
 ##   Heartbeat.trigger()  # Manual trigger for testing
-class_name HeartbeatManager
+class_name HeartTimerManager
 extends Node
 
 signal heartbeat_triggered

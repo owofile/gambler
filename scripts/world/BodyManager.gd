@@ -9,7 +9,7 @@
 ##   BodyMgr.has_part(BodyPart.MOUTH)
 ##   BodyMgr.remove_part(BodyPart.EYES)
 ##   BodyMgr.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
-class_name BodyManager
+class_name BodyPartManager
 extends Node
 
 enum BodyPart {

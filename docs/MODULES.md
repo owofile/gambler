@@ -187,50 +187,50 @@ QuestManager.get_active_quests() -> Array
 # 自动监听BattleEnded, CardAcquired, WorldFlagChanged等事件更新进度
 ```
 
-### BodyManager (身体管理器)
+### BodyPartManager (身体管理器)
 ```gdscript
 # 配置器官（需在游戏开始前调用）
-BodyManager.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
+BodyPartManager.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
 
 # 检查/移除器官
-BodyManager.has_part(BodyPart.MOUTH) -> bool
-BodyManager.remove_part(BodyPart.EYES) -> bool
+BodyPartManager.has_part(BodyPart.MOUTH) -> bool
+BodyPartManager.remove_part(BodyPart.EYES) -> bool
 
 # 获取状态
-BodyManager.get_parts() -> Array[BodyPart]
-BodyManager.get_parts_count() -> int
-BodyManager.is_all_parts_lost() -> bool
+BodyPartManager.get_parts() -> Array[BodyPart]
+BodyPartManager.get_parts_count() -> int
+BodyPartManager.is_all_parts_lost() -> bool
 
 # 存档
-BodyManager.get_save_data() -> Dictionary
-BodyManager.load_save_data(data)
+BodyPartManager.get_save_data() -> Dictionary
+BodyPartManager.load_save_data(data)
 ```
 
-### HeartbeatManager (心跳管理器)
+### HeartTimer (心跳管理器)
 ```gdscript
 # 配置心跳间隔（秒）
-HeartbeatManager.configure(60.0)
+HeartTimer.configure(60.0)
 
 # 控制计时器
-HeartbeatManager.start()
-HeartbeatManager.pause()
-HeartbeatManager.toggle()
+HeartTimer.start()
+HeartTimer.pause()
+HeartTimer.toggle()
 
 # 手动触发（调试用）
-HeartbeatManager.trigger()
+HeartTimer.trigger()
 
 # 查询状态
-HeartbeatManager.is_running() -> bool
-HeartbeatManager.get_interval() -> float
-HeartbeatManager.get_state() -> Dictionary
+HeartTimer.is_running() -> bool
+HeartTimer.get_interval() -> float
+HeartTimer.get_state() -> Dictionary
 
 # 信号
-# heartbeat_triggered -> 当心跳触发时
-# heartbeat_state_changed(is_running) -> 状态变化时
+# HeartTimer.heartbeat_triggered -> 当心跳触发时
+# HeartTimer.heartbeat_state_changed(is_running) -> 状态变化时
 
 # 存档
-HeartbeatManager.get_save_data() -> Dictionary
-HeartbeatManager.load_save_data(data)
+HeartTimer.get_save_data() -> Dictionary
+HeartTimer.load_save_data(data)
 ```
 
 ---
