@@ -17,7 +17,7 @@ func _ready() -> void:
 
 func add_item(prototype_id: String, quantity: int = 1) -> ItemInstance:
 	if _items.size() >= MAX_SIZE:
-		push_warning("InventorySystem: AddItem failed - inventory is full (max %d)" % MAX_SIZE)
+		push_warning("InventoryManager: AddItem failed - inventory is full (max %d)" % MAX_SIZE)
 		return null
 
 	var existing = _find_by_prototype(prototype_id)
@@ -30,7 +30,7 @@ func add_item(prototype_id: String, quantity: int = 1) -> ItemInstance:
 			print("[InventoryManager] Added %d to existing stack: %s (now %d)" % [can_add, prototype_id, existing.get_quantity()])
 			return existing
 		else:
-			push_warning("InventorySystem: AddItem failed - stack is full for %s" % prototype_id)
+			push_warning("InventoryManager: AddItem failed - stack is full for %s" % prototype_id)
 			return null
 
 	var instance = _create_item_instance(prototype_id, quantity)
@@ -54,13 +54,13 @@ func remove_item(instance_id: String, quantity: int = 1) -> bool:
 					print("[InventoryManager] Reduced item: %s (now %d)" % [instance_id, _items[i].get_quantity()])
 				return true
 			return false
-	push_warning("InventorySystem: RemoveItem failed - instance %s not found" % instance_id)
+	push_warning("InventoryManager: RemoveItem failed - instance %s not found" % instance_id)
 	return false
 
 func remove_item_by_prototype(prototype_id: String, quantity: int = 1) -> bool:
 	var instance = _find_by_prototype(prototype_id)
 	if not instance:
-		push_warning("InventorySystem: RemoveItemByPrototype failed - no item with prototype %s" % prototype_id)
+		push_warning("InventoryManager: RemoveItemByPrototype failed - no item with prototype %s" % prototype_id)
 		return false
 	return remove_item(instance.get_id(), quantity)
 
