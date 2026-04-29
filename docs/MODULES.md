@@ -187,23 +187,23 @@ QuestManager.get_active_quests() -> Array
 # 自动监听BattleEnded, CardAcquired, WorldFlagChanged等事件更新进度
 ```
 
-### BodyPartManager (身体管理器)
+### BodyParts (身体管理器)
 ```gdscript
 # 配置器官（需在游戏开始前调用）
-BodyPartManager.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
+BodyParts.configure_parts([BodyPart.EYES, BodyPart.MOUTH, BodyPart.ARMS])
 
 # 检查/移除器官
-BodyPartManager.has_part(BodyPart.MOUTH) -> bool
-BodyPartManager.remove_part(BodyPart.EYES) -> bool
+BodyParts.has_part(BodyPart.MOUTH) -> bool
+BodyParts.remove_part(BodyPart.EYES) -> bool
 
 # 获取状态
-BodyPartManager.get_parts() -> Array[BodyPart]
-BodyPartManager.get_parts_count() -> int
-BodyPartManager.is_all_parts_lost() -> bool
+BodyParts.get_parts() -> Array[BodyPart]
+BodyParts.get_parts_count() -> int
+BodyParts.is_all_parts_lost() -> bool
 
 # 存档
-BodyPartManager.get_save_data() -> Dictionary
-BodyPartManager.load_save_data(data)
+BodyParts.get_save_data() -> Dictionary
+BodyParts.load_save_data(data)
 ```
 
 ### HeartTimer (心跳管理器)
