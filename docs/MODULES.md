@@ -4,6 +4,7 @@
 
 | 日期 | 版本 | 描述 |
 |------|------|------|
+| 2026-04-29 | v4.2 | 新增物品背包系统(InvMgr)、销毁动画优化、Shader着色器动画、战斗结算修复 |
 | 2026-04-28 | v4.1 | InputManager全局输入、调试菜单重构(OOP)、SaveManager修复OOP封装、调试菜单UI改进 |
 | 2026-04-28 | v4.0 | 新增调试菜单(DebugMenu)、卡牌背包系统、存档系统重构、移hardcoded初始卡牌 |
 | 2026-04-27 | v3.5 | 新增 EFFECTS_SYSTEM.md 设计文档（Phase 1-3 计划，Buff系统、目标选择、执行顺序） |
@@ -574,28 +575,28 @@ SaveManager.get_last_save_info()   # 获取存档信息
 
 ### 11.6 物品背包系统
 
-**文件**: `scripts/core/ItemManager.gd` (Autoload)
+**文件**: `scripts/core/InventoryManager.gd` (Autoload: InvMgr)
 
 **接口**:
 ```gdscript
-ItemManager.add_item(prototype_id, quantity=1)  # 添加物品（自动堆叠）
-ItemManager.remove_item(instance_id, quantity=1) # 移除物品（减少数量）
-ItemManager.remove_item_by_prototype(prototype_id, quantity=1) # 按原型移除
-ItemManager.has_item(prototype_id)              # 检查是否有该物品
-ItemManager.get_item_count(prototype_id)        # 获取物品数量
-ItemManager.get_item(instance_id)               # 获取物品实例
-ItemManager.get_all_items()                     # 获取所有物品
-ItemManager.get_inventory_size()                # 背包格数
-ItemManager.is_full()                           # 背包是否已满
-ItemManager.clear_all_items()                   # 清空背包
-ItemManager.MAX_SIZE                            # 最大容量 = 99
+InvMgr.add_item(prototype_id, quantity=1)  # 添加物品（自动堆叠）
+InvMgr.remove_item(instance_id, quantity=1) # 移除物品（减少数量）
+InvMgr.remove_item_by_prototype(prototype_id, quantity=1) # 按原型移除
+InvMgr.has_item(prototype_id)              # 检查是否有该物品
+InvMgr.get_item_count(prototype_id)        # 获取物品数量
+InvMgr.get_item(instance_id)               # 获取物品实例
+InvMgr.get_all_items()                     # 获取所有物品
+InvMgr.get_inventory_size()               # 背包格数
+InvMgr.is_full()                           # 背包是否已满
+InvMgr.clear_all_items()                  # 清空背包
+InvMgr.MAX_SIZE                            # 最大容量 = 99
 ```
 
 **数据类**:
 
 ```gdscript
 ItemInstance (RefCounted)
-├── get_instance_id() / set_instance_id()
+├── get_id() / set_id()                    # 实例ID（不是get_instance_id）
 ├── get_prototype_id() / set_prototype_id()
 ├── get_quantity() / set_quantity()
 ├── add_quantity(amount) / remove_quantity(amount)
@@ -618,12 +619,12 @@ ItemType (RefCounted - 枚举)
 ├── Type.QuestItem = 3     # 任务物品
 ├── Type.Material = 4      # 材料
 ├── Type.KeyItem = 5       # 关键物品
-├── to_string() / from_string()
+├── type_to_string() / string_to_type()
 ```
 
 **原型注册表**: `scripts/data/ItemPrototypeRegistry.gd`
 ```gdscript
-ItemManager.item_registry  # ItemPrototypeRegistry 实例
+DataManager.item_registry  # ItemPrototypeRegistry 实例 (通过DataManager访问)
 ├── register_item(ItemData)
 ├── get_prototype(prototype_id) -> ItemData
 ├── has_prototype(prototype_id) -> bool
@@ -648,7 +649,7 @@ ItemManager.item_registry  # ItemPrototypeRegistry 实例
 
 - [x] InputManager - 全局输入管理器，F1键触发调试菜单
 - [x] 调试菜单 (DebugMenu) - 存档、读档、添加卡牌、背包显示
-- [x] 物品背包系统 (ItemManager) - 消耗品、装备、任务物品管理
+- [x] 物品背包系统 (InvMgr) - 消耗品、装备、任务物品管理
 - [ ] 继续游戏按钮 - 主菜单增加"继续"选项检测存档
 - [ ] 自动存档触发器 - 区域切换时自动存档
 - [ ] ChapterManager - 章节/进度系统

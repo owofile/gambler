@@ -301,8 +301,8 @@ func load_save_data(data: Dictionary) -> void:
 ```gdscript
 func _collect_save_data() -> Dictionary:
     var inventory_data = {}
-    if InventoryManager:
-        inventory_data = InventoryManager.get_save_data()
+    if InvMgr:
+        inventory_data = InvMgr.get_save_data()
     return {
         # ...
         "inventory": inventory_data
